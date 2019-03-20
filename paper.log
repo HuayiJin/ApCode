@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99999 (TeX Live 2018/W32TeX) (preloaded format=xelatex 2018.11.24)  18 MAR 2019 22:34
+This is XeTeX, Version 3.14159265-2.6-0.99999 (TeX Live 2018/W32TeX) (preloaded format=xelatex 2018.11.24)  20 MAR 2019 22:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -591,7 +591,19 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8.14006> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 34.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6.60007> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 34.
- (./paper.bbl)
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 63.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 63.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 63.
+ (./paper.bbl
+Underfull \vbox (badness 3396) has occurred while \output is active []
+
+ [1
+
+
+])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -606,8 +618,7 @@ Before submitting the final camera ready copy, remember to:
 \tf@thm=\write3
 \openout3 = `paper.thm'.
 
-[1
-
+[2
 
 ] (./paper.aux)
 
@@ -615,12 +626,12 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 4728 strings out of 492970
- 66253 string characters out of 6137297
- 141146 words of memory out of 5000000
- 8657 multiletter control sequences out of 15000+600000
- 84765 words of font info for 90 fonts, out of 8000000 for 9000
+ 4755 strings out of 492970
+ 66652 string characters out of 6137297
+ 142146 words of memory out of 5000000
+ 8684 multiletter control sequences out of 15000+600000
+ 94119 words of font info for 114 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 29i,10n,35p,1031b,339s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 29i,10n,35p,1064b,339s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on paper.pdf (1 page).
+Output written on paper.pdf (2 pages).
