@@ -35,7 +35,7 @@
 
 \begin{abstract}
 Erasure codes are commonly used to ensure data availability in cloud storage systems, where video data produced by autopilot, multimedia industry and security monitoring occupies large amounts of space. 
-Typical erasure codes, such as Reed-Solomon (RS) codes or XOR-based codes use several parity disks to fully recover failure disks. 
+Typical erasure codes, such as Reed-Solomon (RS) \cite{macwilliams1977theory} codes or XOR-based codes use several parity disks to fully recover failure disks. 
 However, this is expensive, not only because the scenes in which multiple disks are simultaneously damaged are relatively rare, but also because they do not consider redundant information inside the data, which results in multiple complete parity disks being excessive.   
    
 
@@ -72,10 +72,14 @@ Videos are typically stored in lossy compression, so they are subject to a certa
 This section then introduces the relevant background and our motivation.
 
 \subsection{Existing Erasure Codes}
-RS/LRC/CLAY/SD/STAIR…
+RS/LRC/CLAY/SD/STAIR???
+
 XOR-based
+
 RS-based
+
 RAID6
+
 MSR
 
 \subsection{Approximate Storage}
@@ -87,7 +91,7 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
 
 \subsection{Our Motivation}
-Based on Table 1, the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
+Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}
 In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a chunk. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{TEST-chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
@@ -99,15 +103,25 @@ In a system of $n$ disks, each disk can be divided into multiple sectors. We foc
 \label{TEST-chunk-sector}
 \end{figure}
 
-In the $n$ chunks of each stripe, we use $m$ parity chunks, and there are $s \times t$ additional symbols in the remaining $n-m$ chunks for encoding. Our goal is to provide different reliability for important and general data, so we assume that normal data can tolerate damage of up to $m$ chunks, while important data can tolerate damage of up to $m+s$ chunks. Figure \ref{TEST-apcode-74222} shows an example of an approximate code for $n = 7$, $r = 4$, $m = 2$, $t=2$ and $s = 2$.
+In the $n$ chunks of each stripe, we use $m$ parity chunks, and there are $s \times t$ additional symbols in the remaining $n-m$ chunks for encoding. Our goal is to provide different reliability for important and general data, so we assume that normal data can tolerate damage of up to $m$ chunks, while important data can tolerate damage of up to $m+s$ chunks. Figure \ref{TEST-apcode-75222} shows an example of an approximate code for $n = 7$, $r = 4$, $m = 2$, $t=2$ and $s = 2$.
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.4\textwidth]{photo/TEST-apcode-74222.JPG}
-\caption{TEST--A sample of Approximate Code with n = 7, r = 4, m = 2, t=2 and s = 2.}
-\label{TEST-apcode-74222}
+\includegraphics[width=0.4\textwidth]{photo/TEST-apcode-75222.JPG}
+\caption{TEST--A sample of Approximate Code with n = 7, r = 5, m = 2, t=2 and s = 2.}
+\label{TEST-apcode-75222}
 \end{figure}
 
 \subsection{Design of Approximate Code}
+We label $n$ disks from $D_0$ to $D_{n-1}$. Among them, $D_{n-m}$ to $D_{n-1}$ are parity disks. We label the data disks with $d_{i,j}$, the important data parity sectors with $x_{i,j}$ and the normal parity check sectors with $y_{i,j}$. The following equation represents the method to calculate $x_{i,j}$, $y_{i,j}(i<t)$ and $y_{i,j}(i \geqslant t)$
+
+\begin{equation}
+    x_{i,j} = \sum_{k=0}^{n-m-s-1} \alpha_k^{j+1} d_{i,k}
+\end{equation}
+\begin{equation}
+    \mathop{y_{i,j}}\limits_{i<t} = \sum_{k=0}^{n-m-s-1} \alpha_k^{s+j+1} d_{i,k}
+\end{equation}
+
+
 \subsection{Encoding and Decoding Processes}
 \subsection{Proof of Correctness}
 \subsection{Properties of Approximate Code}
