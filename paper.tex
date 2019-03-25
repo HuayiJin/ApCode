@@ -67,7 +67,7 @@ recovery schemes such as interpolated or superpixel still effective. The approxi
 \section{Related Work and Our Motivation}
 Video data can be classified into hot data and cold data, the former requiring high availability and reliability, which often relies on expensive replication approach. The latter's storage usually uses erasure codes schemes, because cold data far exceeds hot data, and erasure codes can guarantee its reliability with low monetary overhead. However, existing erasure code schemes do not consider the characteristics of video data and are not specifically designed for them.
 
-Videos are typically stored in lossy compression, so they are subject to a certain quality loss when stored compared to the original version, and the extent of this quality loss can be specified by the application. For high-quality coded video, it is difficult for the human eye to distinguish the difference between them and the original video, because they preserve most of the brightness information, which human eye is very sensitive to, and some color information is discarded, which human eye is not sensitive to. Therefore, the encoded video data has an ununiform degree of importance, that is, it is tolerable that some of those less important data losses because the user is hard to detect.
+Videos are typically stored in lossy compression, so they are subject to a certain quality loss when stored compared to the original version, and the extent of this quality loss can be specified by the application. For high-quality coded video, it is difficult for the human eye to distinguish the difference between them and the original video, because they preserve most of the brightness information, which human eye is very sensitive to, and some color information is discarded, which human eye is not sensitive to. Therefore, the encoded video data has an uneven degree of importance, that is, it is tolerable that some of those less important data losses because the users are hard to detect. On the other hand, loss of important data will have more serious consequences.
 
 This section then introduces the relevant background and our motivation.
 
@@ -86,9 +86,8 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 
 H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
 
-
-
 \subsection{Our Motivation}
+Based on Table 1, the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}
 In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a chunk. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{TEST-chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
