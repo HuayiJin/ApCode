@@ -62,7 +62,7 @@ Existing erasure codes are designed to completely recover corrupted data. Typica
 We also find that video data is usually stored after being encoded to save space, while the encoded video data stream is non-uniformly sensitive to data loss, which makes it inappropriate to provide uniform fault tolerance using conventional erasure codes. With the motion compensation mechanism, common video coding algorithms such as H.264 only needs to store the complete content of key frames and a little part of other frames, which makes other frames rely on the key frames for computation while decoding.
 
 Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first strip. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes 
-recovery schemes such as interpolated or superpixel still effective. The approximate codes provide two recovery modes, full recovery and approximate recovery. The former applies to no more than $m$ disk corruptions and recovers all data, the latter applies to no more than $m+$s disks corruptions and retains important data.
+recovery schemes such as interpolated or superpixel still effective. The Approximate Codes provide two recovery modes, full recovery and approximate recovery. The former applies to no more than $m$ disk corruptions and recovers all data, the latter applies to no more than $m+$s disks corruptions and retains important data.
 
 \section{Related Work and Our Motivation}
 Video data can be classified into hot data and cold data, the former requiring high availability and reliability, which often relies on expensive replication approach. The latter's storage usually uses erasure codes schemes, because cold data far exceeds hot data, and erasure codes can guarantee its reliability with low monetary overhead. However, existing erasure code schemes do not consider the characteristics of video data and are not specifically designed for them.
@@ -94,6 +94,9 @@ H.264 is one of the advanced algorithms for this type of work. This coding techn
 Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}
+In this section, we introduce the design of Approximate Codes and its properties through a simple example. In order to be general and easy to describe, we use fewer data blocks and more parity blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in XXX.
+
+\subsection{Design of Approximate Code}
 In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a chunk. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{TEST-chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
 
 \begin{figure}[ht]
@@ -103,27 +106,49 @@ In a system of $n$ disks, each disk can be divided into multiple sectors. We foc
 \label{TEST-chunk-sector}
 \end{figure}
 
-In the $n$ chunks of each stripe, we use $m$ parity chunks, and there are $s \times t$ additional symbols in the remaining $n-m$ chunks for encoding. Our goal is to provide different reliability for important and general data, so we assume that normal data can tolerate damage of up to $m$ chunks, while important data can tolerate damage of up to $m+s$ chunks. Figure \ref{TEST-apcode-75222} shows an example of an approximate code for $n = 7$, $r = 4$, $m = 2$, $t=2$ and $s = 2$.
-\begin{figure}[ht]
+In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $n-m$ chunks, we use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows.
+Our design assumes that the parameters  $(n, m, s,t)$ are user-defined configurable parameters so the constructor of the Approximate Code will be determined by these 4 parameters.
+For convenience, we label $h=n-m-s$ as the number of columns of important data.
+We choose the value of $r$ according to equation $r=s+h$, which will be explained in \ref{Data Distribution}.
+Figure \ref{apcode-7222-v2} shows an example of Approximate Codes with $n = 7$,$m = 2$ , $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
+
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.4\textwidth]{photo/TEST-apcode-75222.JPG}
-\caption{TEST--A sample of Approximate Code with n = 7, r = 5, m = 2, t=2 and s = 2.}
-\label{TEST-apcode-75222}
+\includegraphics[width=0.4\textwidth]{photo/apcode-7222-v2.PDF}
+\caption{A sample of Approximate Codes $(7,2,2,2)$ with 7 chunks where 2 of them are parity chunks (presented by orange) and 4 other sectors (presented by red) are designed for encoding important data. In this example, there are 6 sectors (presented by dark blue) for important data and 15 sectors (presented by light blue) for normal data.}
+\label{apcode-7222-v2}
 \end{figure}
 
-\subsection{Design of Approximate Code}
-We label $n$ disks from $D_0$ to $D_{n-1}$. Among them, $D_{n-m}$ to $D_{n-1}$ are parity disks. We label the data disks with $d_{i,j}$, the important data parity sectors with $x_{i,j}$ and the normal parity check sectors with $y_{i,j}$. The following equation represents the method to calculate $x_{i,j}$, $y_{i,j}(i<t)$ and $y_{i,j}(i \geqslant t)$
+\subsubsection{Encoding Process}
+We explain the encoding process through Figure \ref{apcode-7222-v2}, which shows the two encoding phases of Approximate Codes. 
 
-\begin{equation}
-    x_{i,j} = \sum_{k=0}^{n-m-s-1} \alpha_k^{j+1} d_{i,k}
+\textbf{Phase 1:} Encode important data sectors based on Galois Field (GF). Phase 1 generate $s$ groups of RS parity sectors labeled with $q_{i,j}$ and they are defined by equation \ref{q_ij}, where $\alpha$ is the coefficient in GF. 
+For example, $q_{0,0} = \alpha_0 d_{0,0} + \alpha_1 d_{0,1} + \alpha_2 d_{0,2}$ and 
+$q_{1,1} = \alpha_0^2 d_{1,0} + \alpha_1^2 d_{1,1} + \alpha_2^2 d_{1,2}$
+
+\textbf{Phase 2:} Generate $m$ parity chunks from $h+s$ chunks consist of data sectors and important parity sectors. 
+
+
+ , $p_{i,j(i<t)}$ and $p_{i,j(i \geqslant t)}$
+
+
+\begin{equation}\label{q_ij}
+    q_{i,j} = \sum_{k=0}^{h-1} \alpha_k^{j+1} d_{i,k}
 \end{equation}
 \begin{equation}
-    \mathop{y_{i,j}}\limits_{i<t} = \sum_{k=0}^{n-m-s-1} \alpha_k^{s+j+1} d_{i,k}
+    \mathop{p_{i,j}}\limits_{i<t} = 
+    \sum_{k=0}^{h-1} \alpha_k^{s+j+1} d_{i,k} +
+    \sum_{l=0}^{s-1} \alpha_{l+h}^{s+j+1} q_{i,l}
+\end{equation}
+\begin{equation}
+    \mathop{p_{i,j}}\limits_{i \geqslant t} = 
+    \sum_{k=0}^{n-m-1} \alpha_k^{s+j+1} d_{i,k}
 \end{equation}
 
 
-\subsection{Encoding and Decoding Processes}
+
 \subsection{Proof of Correctness}
+\subsection{Data Distribution}\label{Data Distribution}
 \subsection{Properties of Approximate Code}
 
 \section{Evaluation}
