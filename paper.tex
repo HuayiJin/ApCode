@@ -107,10 +107,12 @@ In a system of $n$ disks, each disk can be divided into multiple sectors. We foc
 \end{figure}
 
 In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $n-m$ chunks, we use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows.
-Our design assumes that the parameters  $(n, m, s,t)$ are user-defined configurable parameters so the constructor of the Approximate Code will be determined by these 4 parameters.
-For convenience, we label $h=n-m-s$ as the number of columns of important data.
-We choose the value of $r$ according to equation $r=s+h$, which will be explained in \ref{Data Distribution}.
-Figure \ref{apcode-7222-v2} shows an example of Approximate Codes with $n = 7$,$m = 2$ , $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
+Our design assumes that the parameters  $(n, m, s,t)$ are configurable parameters shus the constructor of the Approximate Code will be determined by these 4 parameters.
+Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$.
+The relevant instructions will be shown in \ref{Data Distribution}.
+Meanwhile, we label $h=n-m-s$ as the number of columns of important data for convenience.
+
+Figure \ref{apcode-7222-v2} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
 
 \begin{figure}[t]
 \centering
@@ -120,11 +122,10 @@ Figure \ref{apcode-7222-v2} shows an example of Approximate Codes with $n = 7$,$
 \end{figure}
 
 \subsubsection{Encoding Process}
-We explain the encoding process through Figure \ref{apcode-7222-v2}, which shows the two encoding phases of Approximate Codes. 
+The encoding process can be divided into two phases: important coding phase and global coding phase. We us RS code to generate both important parity sectors and global parity sectors.
 
-\textbf{Phase 1:} Encode important data sectors based on Galois Field (GF). Phase 1 generate $s$ groups of RS parity sectors labeled with $q_{i,j}$ and they are defined by equation \ref{q_ij}, where $\alpha$ is the coefficient in GF. 
-For example, $q_{0,0} = \alpha_0 d_{0,0} + \alpha_1 d_{0,1} + \alpha_2 d_{0,2}$ and 
-$q_{1,1} = \alpha_0^2 d_{1,0} + \alpha_1^2 d_{1,1} + \alpha_2^2 d_{1,2}$
+\emph{Phase 1} Encode important data sectors based on Galois Field (GF) and generate $s$ groups of RS parity sectors labeled with $q_{i,j}$ and they are defined by equation \ref{q_ij}, where $\alpha$ is the coefficient in GF. According to Figure \ref{apcode-7222-v2}, Phase 1 use RS(5,3).
+For example, $q_{1,1} = \alpha_0^2 d_{1,0} + \alpha_1^2 d_{1,1} + \alpha_2^2 d_{1,2}$
 
 \textbf{Phase 2:} Generate $m$ parity chunks from $h+s$ chunks consist of data sectors and important parity sectors. 
 
