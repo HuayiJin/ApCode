@@ -34,10 +34,10 @@
 \maketitle
 
 \begin{abstract}
-Erasure codes are commonly used to ensure data availability in cloud storage systems, where video data produced by autopilot, multimedia industry and security monitoring occupies large amounts of space.
-Typical erasure codes, such as Reed-Solomon (RS) \cite{macwilliams1977theory} codes or XOR-based codes use several parity disks to fully recover failure disks.
-However, this is expensive, not only because the scenes in which multiple disks are simultaneously damaged are relatively rare, but also because they do not consider redundant information inside the data, which results in multiple complete parity disks being excessive.
-
+Erasure codes are commonly used to ensure data availability in cloud storage systems, where video data produced by autopilot, multimedia industry and security monitoring occupies large amounts of space. 
+Typical erasure codes, such as Reed-Solomon (RS) \cite{macwilliams1977theory} codes or XOR-based codes use several parity disks to fully recover failure disks. 
+However, this is expensive, not only because the scenes in which multiple disks are simultaneously damaged are relatively rare, but also because they do not consider redundant information inside the data, which results in multiple complete parity disks being excessive.   
+   
 
 Therefore, we propose Approximate Codes for video data, which significantly reduce storage overhead and increase availability for more important data segments.
 Approximate Codes provide complete recovery when fewer disks fail, and approximate recovery (recover most data) in the event of multiple disk failures.
@@ -61,7 +61,7 @@ Existing erasure codes are designed to completely recover corrupted data. Typica
 
 We also find that video data is usually stored after being encoded to save space, while the encoded video data stream is non-uniformly sensitive to data loss, which makes it inappropriate to provide uniform fault tolerance using conventional erasure codes. With the motion compensation mechanism, common video coding algorithms such as H.264 only needs to store the complete content of key frames and a little part of other frames, which makes other frames rely on the key frames for computation while decoding.
 
-Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first strip. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes
+Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first strip. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes 
 recovery schemes such as interpolated or superpixel still effective. The Approximate Codes provide two recovery modes, full recovery and approximate recovery. The former applies to no more than $m$ disk corruptions and recovers all data, the latter applies to no more than $m+$s disks corruptions and retains important data.
 
 \section{Related Work and Our Motivation}
@@ -83,7 +83,7 @@ RAID6
 MSR
 
 \subsection{Video Storage}\label{video storage}
-For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded and compressed before storage. Lossy compression is a common method that provides a much lower compression ratio than lossless compression while ensuring tolerable loss of video quality, so we focus on such algorithms.
+For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded and compressed before storage. Lossy compression is a common method that provides a much lower compression ratio than lossless compression while ensuring tolerable loss of video quality, so we focus on such algorithms. 
 
 \begin{figure}[ht]
 \centering
@@ -102,15 +102,6 @@ It loosens the requirement of storage reliability by allowing some quality loss 
 However, it is too naive to store data in approximate storage units indiscriminately. Related research [] shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs.
 
 In the storage of video data, as described in \ref{video storage}, the I frame is the key to decoding the entire GOP. An error in the I frame will cause a decoding error in the P frames and the B frames, and the data loss of the I frame will cause the entire GOP to be undecodable. In contrast, the error or loss of a P frame has less impact, while the B frame is most tolerant of errors because no other frame depends on it.
-
-\subsection{Video Frame Recovery: Frame Interpolation}
-In the circumstance of data loss, it's common to lose some frames and then the video is not complete. One easy way to solve this problem is to store consecutive frames in different disks, so the video is still good for displaying only with fewer frame rates. Another alternative is that we can actually recover the lost frames by applying the a technique named video frame interpolation.
-
-Video frame interpolation is one of the basic video processing techniques, an attempt to synthetically produce one or more intermediate video frames from existing ones, the simple case being the interpolation of one frame given two consecutive video frames. This is a technique that can model natural motion within a video, and generate frames according to this modelling. Artificially increasing the frame-rate of videos enables the possibility of frame recovery. Optical flow is commonly addressed in the video frame interpolation problem. Optical flow is the pattern of apparent motion of objects, surfaces, and edges in a visual scene caused by the relative motion between an observer and a scene. Video frame interpolation algorithms typically estimate optical flow or its variations and use them to warp and blend original frames to produce interpolation results.
-
-Recently, phase-based methods have shown promising results in applications such as motion and view extrapolation \cite{didyk2013joint}\cite{wadhwa2013phase}\cite{meyer2015phase}. These methods rely on the assumption that small motions can be encoded in the phase shift of an individual pixel¡¯s color. Meanwhile, deep learning approaches, and in particular Convolutional Neural Networks (CNNs), have set up new state-of-the-art results across many computer vision problems which also makes big improvements to frame interpolation. In neural networks, optical flow features are trained in a supervised setup mapping two frames to their ground truth optical flow field\cite{dosovitskiy2015flownet}\cite{ilg2017flownet}. Among them, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the best results in terms of PSNR and middlebury benchmark respectively.
-
-All the frame interpolation method are based on that we have the input of full images of two consecutive frames (maybe one or two missing in the middle). However, in the popular coding format like H.264, only I frame have full image data of itself, and all the other image data is dependent on that in I frames. Without an I frame, the following ones that depend on it will go invalid and be impossible for recovery which means I frames require more storage overhead to ensure its integrity and reliability.
 
 \subsection{Our Motivation}
 Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
@@ -133,7 +124,7 @@ Our design assumes that the parameters  $(n, m, s,t)$ are configurable parameter
 Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$.
 The relevant instructions will be shown in \ref{Data Distribution}.
 Meanwhile, we label $h=n-m-s$ as the number of columns of important data for convenience.
-Figure \ref{apcode-7222-v4} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$.
+Figure \ref{apcode-7222-v4} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
 
 \begin{figure}[ht]
 \centering
@@ -142,13 +133,13 @@ Figure \ref{apcode-7222-v4} shows an example of Approximate Codes with $n = 7$, 
 \label{apcode-7222-v4}
 \end{figure}
 
-A variety of erasure codes can be used for the encoding and decoding process of Approximate Codes. Here we only introduce our RS-based design as an example.
+A variety of erasure codes can be used for the encoding and decoding process of Approximate Codes. Here we only introduce our RS-based design as an example. 
 \hl{Approximate Codes based on other erasure code schemes include XOR-based codes or MSR codes will be introduced in Section }\ref{evaluation}.
 
 \subsubsection{Encoding Process}
-The encoding process can be divided into two phases: important coding phase and global coding phase.
+The encoding process can be divided into two phases: important coding phase and global coding phase. 
 
-In \emph{phase 1}, we use RS$(h+s,h)$ to encode $h$ groups of important data sectors and generate $s$ groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF).
+In \emph{phase 1}, we use RS$(h+s,h)$ to encode $h$ groups of important data sectors and generate $s$ groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF). 
 For example, $q_{1,1} = \alpha_0^2 d_{1,0} + \alpha_1^2 d_{1,1} + \alpha_2^2 d_{1,2}$.
 As shown in the blod box in Figure \ref{apcode-7222-v2}, we use RS(5,3) in this phase.
 \begin{equation}\label{q_ij}
@@ -161,12 +152,12 @@ For example, $p_{1,1} = \alpha_0^4 d_{1,0} + \alpha_1^4 d_{1,1} + \alpha_2^4 d_{
 As shown in orange chunks in Figure \ref{apcode-7222-v2}, we use RS(7,5) in this phase.
 
 \begin{equation}\label{p_ij_1}
-    \mathop{p_{i,j}}\limits_{i<t} =
+    \mathop{p_{i,j}}\limits_{i<t} = 
     \sum_{k=0}^{h-1} \alpha_k^{s+j+1} d_{i,k} +
     \sum_{l=0}^{s-1} \alpha_{l+h}^{s+j+1} q_{i,l}
 \end{equation}
 \begin{equation}\label{p_ij_2}
-    \mathop{p_{i,j}}\limits_{i \geqslant t} =
+    \mathop{p_{i,j}}\limits_{i \geqslant t} = 
     \sum_{k=0}^{n-m-1} \alpha_k^{s+j+1} d_{i,k}
 \end{equation}
 
