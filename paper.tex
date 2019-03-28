@@ -1,6 +1,6 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
-% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%\documentclass[conference]{IEEEtran}
+\documentclass[sigconf]{acmart}
+
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithm}
@@ -16,20 +16,22 @@
 \usepackage[bottom]{footmisc}
 \usepackage{soul}
 
-\usepackage[T1]{fontenc}
-\usepackage{mathptmx}
-\soulregister\cite7
-\soulregister\ref7
-\pagestyle{plain}
+\usepackage{booktabs}
 
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+%\usepackage[T1]{fontenc}
+%\usepackage{mathptmx}
+%\soulregister\cite7
+%\soulregister\ref7
+%\pagestyle{plain}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
 \begin{document}
 
 \title{\LARGE{Approximate Code: A Cost-Effective Erasure Code for MultimediavApplications in Cloud Storage Systems}\\
 }
-\author{\IEEEauthorblockN{Huayi Jin$^1$}
-}
+\author{Huayi Jin$^1$}
+
 
 \maketitle
 
@@ -46,9 +48,9 @@ The results show that compared with the typical high-reliability erasure code sc
 
 \end{abstract}
 
-\begin{IEEEkeywords}
+\begin{keywords}
     Erasure Codes, Approximate Storage, Multimedia, Cloud Storage
-\end{IEEEkeywords}
+\end{keywords}
 
 \section{Introduction}
 Currently, many cloud storage systems use erasure codes to tolerate disk failures and ensure data availability, such as Windows [], Amazon AWS [] or Alibaba Cloud. It is known that erasure codes provide much lower storage overhead and write bandwidth than replication with the same fault tolerance.
@@ -64,6 +66,32 @@ We also find that video data is usually stored after being encoded to save space
 Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first strip. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes 
 recovery schemes such as interpolated or superpixel still effective. The Approximate Codes provide two recovery modes, full recovery and approximate recovery. The former applies to no more than $m$ disk corruptions and recovers all data, the latter applies to no more than $m+$s disks corruptions and retains important data.
 
+\textcolor{red}
+{Sixth paragraph:
+Contribution of this paper, typically two or three contributions,
+(1)	Propose a novel code Approximate Code
+(2)	Give some mathematical proof to demonstrate the correctness of Approximate Code
+(3)	Conduct several experiments to demonstrate the effectiveness of Approximate Code (no digitals here)}
+
+\begin{table*}[]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Name & Fault Tolerance & Storage Overhead & Scalibility & Recovery Cost & Computational Complexity \\ \hline
+RS Code & any m disks & m disks & high & high & high \\ \hline
+LRC Code & up to m disks & m global disks and r local disks & high & medium & medium \\ \hline
+MSR Code & any m disks & m disks & medium & low & very high \\ \hline
+Raid 6 & 2 & 2 & low & high & low \\ \hline
+SD Code & m disks and s sectors & m disks and s sectors & low & low & low \\ \hline
+Approximate Code(Important) & m+s disks & m disks and s sectors & high & high & medium to high \\ \hline
+Approximate Code(Ordinary) & m disks & m disks and s sectors & high & high & medium to high \\ \hline
+\end{tabular}
+\end{table*}
+
+\textcolor{red}
+{Seventh paragraph:
+organization of the paper}
+
 \section{Related Work and Our Motivation}
 Video data can be classified into hot data and cold data, the former requiring high availability and reliability, which often relies on expensive replication approach. The latter's storage usually uses erasure codes schemes, because cold data far exceeds hot data, and erasure codes can guarantee its reliability with low monetary overhead. However, existing erasure code schemes do not consider the characteristics of video data and are not specifically designed for them.
 
@@ -72,15 +100,10 @@ Videos are typically stored in lossy compression, so they are subject to a certa
 This section then introduces the relevant background and our motivation.
 
 \subsection{Existing Erasure Codes}
-RS/LRC/CLAY/SD/STAIR???
 
-XOR-based
-
-RS-based
-
-RAID6
-
-MSR
+\textcolor{red}{Here we give some introduction to existing erasure codes
+Specifically, we need to illustrate the existing erasure codes for video applications in detail.
+Summarize the existing erasure codes in a table (assume Table 1), and illustrate them whether they satisfy the previous requirements in Section II.A}
 
 \subsection{Video Storage}\label{video storage}
 For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded and compressed before storage. Lossy compression is a common method that provides a much lower compression ratio than lossless compression while ensuring tolerable loss of video quality, so we focus on such algorithms. 
@@ -94,12 +117,14 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 
 H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
 
+\textcolor{red}{Something about H.264\dots}
+
 \subsection{Approximate Storage}
 Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
 
 It loosens the requirement of storage reliability by allowing some quality loss of specific data. Therefore, programmers can specify the importance of the data segments and assign them to different storage blocks. The critical data is still safe because they are stored and redundantly backed up by expensive and highly reliable storage devices. Meanwhile, non-critical data is exposed to error, thus increasing storage density and saving cost.
 
-However, it is too naive to store data in approximate storage units indiscriminately. Related research [] shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs.
+However, it is too naive to store data in approximate storage units indiscriminately. Related research \cite{guo2016high} shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs.
 
 In the storage of video data, as described in \ref{video storage}, the I frame is the key to decoding the entire GOP. An error in the I frame will cause a decoding error in the P frames and the B frames, and the data loss of the I frame will cause the entire GOP to be undecodable. In contrast, the error or loss of a P frame has less impact, while the B frame is most tolerant of errors because no other frame depends on it.
 
@@ -124,13 +149,13 @@ Our design assumes that the parameters  $(n, m, s,t)$ are configurable parameter
 Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$.
 The relevant instructions will be shown in \ref{Data Distribution}.
 Meanwhile, we label $h=n-m-s$ as the number of columns of important data for convenience.
-Figure \ref{apcode-7222-v4} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
+Figure \ref{apcode-7222-v5} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.4\textwidth]{photo/apcode-7222-v4.PDF}
+\includegraphics[width=0.45\textwidth]{photo/apcode-7222-v5.PDF}
 \caption{A sample of Approximate Codes $(7,2,2,2)$ with 7 chunks where 2 of them are parity chunks (presented by orange) and 4 other sectors (presented by red) are designed for encoding important data. In this example, there are 6 sectors (presented by dark blue) for important data and 15 sectors (presented by light blue) for normal data.}
-\label{apcode-7222-v4}
+\label{apcode-7222-v5}
 \end{figure}
 
 A variety of erasure codes can be used for the encoding and decoding process of Approximate Codes. Here we only introduce our RS-based design as an example. 
@@ -141,7 +166,7 @@ The encoding process can be divided into two phases: important coding phase and 
 
 In \emph{phase 1}, we use RS$(h+s,h)$ to encode $h$ groups of important data sectors and generate $s$ groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF). 
 For example, $q_{1,1} = \alpha_0^2 d_{1,0} + \alpha_1^2 d_{1,1} + \alpha_2^2 d_{1,2}$.
-As shown in the blod box in Figure \ref{apcode-7222-v2}, we use RS(5,3) in this phase.
+As shown in the blod box in Figure \ref{apcode-7222-v5}, we use RS(5,3) in this phase.
 \begin{equation}\label{q_ij}
     q_{i,j} = \sum_{k=0}^{h-1} \alpha_k^{j+1} d_{i,k}
 \end{equation}
@@ -149,7 +174,7 @@ As shown in the blod box in Figure \ref{apcode-7222-v2}, we use RS(5,3) in this 
 In \emph{phase 2}, we use RS$(n,n-m)$ to generate $m$ parity chunks labeled with $p_{i,j}$ from $n-m$ chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation \ref{p_ij_1} and \ref{p_ij_2}.
 Despite the difference in expression, the encoding process for $p_{i,j(i<t)}$ and $p_{i,j(i \geqslant t)}$ are same on chunk level because we treat $q_{i,j}$ and $b_{i,j}$ as the same on chunk level.
 For example, $p_{1,1} = \alpha_0^4 d_{1,0} + \alpha_1^4 d_{1,1} + \alpha_2^4 d_{1,2} + \alpha_3^4 q_{1,0} + \alpha_4^4 q_{1,1}$.
-As shown in orange chunks in Figure \ref{apcode-7222-v2}, we use RS(7,5) in this phase.
+As shown in orange chunks in Figure \ref{apcode-7222-v5}, we use RS(7,5) in this phase.
 
 \begin{equation}\label{p_ij_1}
     \mathop{p_{i,j}}\limits_{i<t} = 
@@ -161,6 +186,8 @@ As shown in orange chunks in Figure \ref{apcode-7222-v2}, we use RS(7,5) in this
     \sum_{k=0}^{n-m-1} \alpha_k^{s+j+1} d_{i,k}
 \end{equation}
 
+\subsubsection{Decoding Process}
+The decoding process can be partitioned into two modes: full recovery mode and approximate recovery mode. When no more than $m$ chunks lost, the system can fully recover 
 
 
 \subsection{Proof of Correctness}
@@ -181,7 +208,5 @@ Illustrate why Approximate Code achieve high reliability with low cost
 \section{Conclusion}
 \section*{Acknowledgment}
 
-\bibliographystyle{IEEEtrans}
-\bibliography{paper}
 
 \end{document}
