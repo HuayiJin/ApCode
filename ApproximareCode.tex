@@ -48,18 +48,19 @@ Contribution of this paper, typically two or three contributions,
 (2)	Give some mathematical proof to demonstrate the correctness of Approximate Code
 (3)	Conduct several experiments to demonstrate the effectiveness of Approximate Code (no digitals here)}
 
-\begin{table*}[]
+\begin{table*}[ht]
 \centering
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-Name & Fault Tolerance & Storage Overhead & Scalibility & Recovery Cost & Computational Complexity \\ \hline
-RS Code & any m disks & m disks & high & high & high \\ \hline
-LRC Code & up to m disks & m global disks and r local disks & high & medium & medium \\ \hline
-MSR Code & any m disks & m disks & medium & low & very high \\ \hline
-Raid 6 & 2 & 2 & low & high & low \\ \hline
-SD Code & m disks and s sectors & m disks and s sectors & low & low & low \\ \hline
-Approximate Code(Important) & m+s disks & m disks and s sectors & high & high & medium to high \\ \hline
-Approximate Code(Ordinary) & m disks & m disks and s sectors & high & high & medium to high \\ \hline
+\caption{Summary on Various Erasure Codes}
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+Name & Fault Tolerance & Storage Overhead & Scalibility & Recovery Cost & \begin{tabular}[c]{@{}c@{}}Computational\\ Complexity\end{tabular} \\ \midrule
+RS($k,r$) Code & any $r$ disks & $r$ disks & high & high & high \\
+LRC($k,l,r$) Code & $r+1$ to $r+l$ disks & $l+r$ disks & high & medium & medium \\
+MSR($k,r$) Code & any $m$ disks & $m$ disks & medium & low & very high \\
+Raid 6 & 2 & 2 & low & high & low \\
+SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low & low & medium \\
+\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Important Data)\end{tabular} & any $m+s$ disks & $m$ disks and $s$ sectors & high & high & medium \\
+\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Ordinary Data)\end{tabular} & any $m$ disks & $m$ disks and $s$ sectors & high & high & high \\ \bottomrule
 \end{tabular}
 \end{table*}
 
@@ -85,7 +86,7 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.48\textwidth]{photo/H264_IPB.pdf}
+\includegraphics[width=0.45\textwidth]{photo/H264_IPB.pdf}
 \caption{A sample of GOPs in H.264}
 \label{H264-IPB}
 \end{figure}
@@ -107,7 +108,7 @@ In the storage of video data, as described in \ref{video storage}, the I frame i
 Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance between important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}
-In this section, we introduce the design of Approximate Codes and its properties through a simple example. In order to be general and easy to describe, we use fewer data blocks and more parity blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in XXX.
+In this section, we introduce the design of Approximate Code and its properties through a few simple examples. In order to be general and easy to describe, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
 
 \subsection{Design of Approximate Code}
 In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a chunk. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{TEST-chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
