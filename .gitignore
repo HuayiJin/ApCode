@@ -4,6 +4,7 @@ acmart.pdf
 acmguide.pdf
 sample-*.pdf
 *.log
+*.pdf
 *.aux
 *.cfg
 *.glo
