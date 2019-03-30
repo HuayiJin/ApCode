@@ -2,9 +2,10 @@
 /PaperCol
 acmart.pdf
 acmguide.pdf
-*.synctex.gz
+ApproximareCode.synctex.gz
 *.pdf
 *.log
+ApproximareCode.pdf
 *.aux
 *.cfg
 *.glo
