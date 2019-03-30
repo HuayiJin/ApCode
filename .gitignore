@@ -2,7 +2,8 @@
 /PaperCol
 acmart.pdf
 acmguide.pdf
-sample-*.pdf
+*.synctex.gz
+*.pdf
 *.log
 *.aux
 *.cfg
