@@ -1,7 +1,8 @@
 \documentclass[sigconf]{acmart}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
-    
+\usepackage{subfigure}
+
 \begin{document}
 
 \title{Approximate Code: A Cost-Effective Erasure Code for Video Applications in Cloud Storage Systems}
@@ -68,7 +69,7 @@ MSR($k,m$) Code & any $m$ disks & $m$ disks & medium & low & very high \\ \hline
 Raid 6 & 2 & 2 & low & high & low \\ \hline
 SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low & low & medium \\ \hline
 \begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Important Data)\end{tabular} & any $m+s$ disks & $m$ disks and $s$ sectors & high & high & medium \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Ordinary Data)\end{tabular} & any $m$ disks & $m$ disks and $s$ sectors & high & high & high \\ \hline
+\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Minor Data)\end{tabular} & any $m$ disks & $m$ disks and $s$ sectors & high & high & high \\ \hline
 \end{tabular}
 \end{table*}
 
@@ -112,14 +113,20 @@ However, it is too naive to store data in approximate storage units indiscrimina
 
 In the storage of video data, as described in \ref{video storage}, the I frame is the key to decoding the entire GOP. An error in the I frame will cause a decoding error in the P frames and the B frames, and the data loss of the I frame will cause the entire GOP to be undecodable. In contrast, the error or loss of a P frame has less impact, while the B frame is most tolerant of errors because no other frame depends on it.
 
+\textcolor{red}{We define I frames are our important data}
+
 \subsection{Video Frame Recovery: Frame Interpolation}
+\textcolor{red}{Add something related to the former subsection}
+
+\textcolor{blue}{In the circumstance of video approximate storage, it's common to lose some minor data making the video incomplete...}
+
 In the circumstance of data loss, it's common to lose some frames and then the video is not complete. One easy way to solve this problem is to store consecutive frames in different disks, so the video is still good for displaying only with fewer frame rates. Another alternative is that we can actually recover the lost frames by applying the a technique named video frame interpolation.
 
 Video frame interpolation is one of the basic video processing techniques, an attempt to synthetically produce one or more intermediate video frames from existing ones, the simple case being the interpolation of one frame given two consecutive video frames. This is a technique that can model natural motion within a video, and generate frames according to this modelling. Artificially increasing the frame-rate of videos enables the possibility of frame recovery. Optical flow is commonly addressed in the video frame interpolation problem. Optical flow is the pattern of apparent motion of objects, surfaces, and edges in a visual scene caused by the relative motion between an observer and a scene. Video frame interpolation algorithms typically estimate optical flow or its variations and use them to warp and blend original frames to produce interpolation results.
 
 Recently, phase-based methods have shown promising results in applications such as motion and view extrapolation \cite{didyk2013joint}\cite{wadhwa2013phase}\cite{meyer2015phase}. These methods rely on the assumption that small motions can be encoded in the phase shift of an individual pixel¡¯s color. Meanwhile, deep learning approaches, and in particular Convolutional Neural Networks (CNNs), have set up new state-of-the-art results across many computer vision problems which also makes big improvements to frame interpolation. In neural networks, optical flow features are trained in a supervised setup mapping two frames to their ground truth optical flow field\cite{dosovitskiy2015flownet}\cite{ilg2017flownet}. Among them, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the best results in terms of PSNR and middlebury benchmark respectively.
 
-All the frame interpolation method are based on that we have the input of full images of two consecutive frames (maybe one or two missing in the middle). However, in the popular coding format like H.264, only I frame have full image data of itself, and all the other image data is dependent on that in I frames. Without an I frame, the following ones that depend on it will go invalid and be impossible for recovery which means I frames require more storage overhead to ensure its integrity and reliability.
+\textcolor{blue}{All the frame interpolation method are based on that we have the input of full images of two consecutive frames (maybe one or two missing in the middle). However, in the popular coding format like H.264, only I frame have full image data of itself, and all the other image data is dependent on that in I frames. Without an I frame, the following ones that depend on it will go invalid and be impossible for recovery which means I frames require more storage overhead to ensure its integrity and reliability.}
 
 \subsection{Our Motivation}
 Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
@@ -143,12 +150,28 @@ For convenience, we label $h=n-m-s$ as the number of columns of important data t
 Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$ and the relevant instructions will be shown in \ref{Data Distribution}.
 
 Based on the above definition, our design has 4 configurable parameters $(n, m, s,t)$ that uniquely determine the construction of Approximate Code.
-Figure \ref{apcode-7222-v5} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the normal parity sectors with $p_{i,j}$. 
+Figure \ref{apcode-7222-v5} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
 
-\begin{figure}[htbp]
+We then define the set of sectors as follows:
+\begin{itemize}
+    \item Important data sector set $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$
+    \item Minor data sector set $D_M=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < n-m \}$
+    \item Important parity sector set $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$
+    \item Global parity sector set $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$
+\end{itemize}
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.45\textwidth]{photo/apcode-7222-v5.PDF}
-\caption{A sample of Approximate Codes $(7,2,2,2)$ with 7 chunks where 2 of them are parity chunks (orange blocks) and 4 other sectors (red blocks) are designed for encoding important data. In this example, there are 6 sectors (dark blue blocks) for important data and 15 sectors (light blue blocks) for normal data.}
+
+\subfigure[sector label and encoding process]{
+    \includegraphics[width=0.32\textwidth]{photo/apcode-7222-v5.PDF}
+    \label{apcode-7222-v5-a}
+}
+\subfigure[sector sets]{
+    \includegraphics[width=0.13\textwidth]{photo/DDQG.PDF}
+    \label{apcode-7222-v5-b}
+}
+\caption{A sample of Approximate Codes $(7,2,2,2)$ with 7 chunks where 2 of them are parity chunks (orange set $G$) and 4 other sectors (red set $Q$) are designed for encoding important data. In this example, there are 6 sectors (dark blue set $D_I$) for important data and 15 sectors (light blue set $D_M$) for minor data.}
 \label{apcode-7222-v5}
 \end{figure}
 
@@ -156,51 +179,60 @@ Figure \ref{apcode-7222-v5} shows an example of Approximate Codes with $n = 7$, 
 Approximate Codes based on other erasure code schemes include XOR-based codes or MSR codes will be introduced in Section XXXXX}.
 
 In general, Approximate Code performs extra parities on important data.
-Since our design guarantees the important data, the important parity and the normal data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in any way, as long as their parity method are linearly independent of the way the important parity blocks are. Therefore, EC methods such as RS-based codes, XOR-based codes or MSR codes can be used to construct Approximate Code because it is essentially a way of data classification and data distribution, and current EC schemes do not assume anything about data feature.
+Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in any way, as long as their parity method are linearly independent of the way the important parity blocks are. Therefore, EC methods such as RS-based codes, XOR-based codes or MSR codes can be used to construct Approximate Code because it is essentially a way of data classification and data distribution, and current EC schemes do not assume anything about data feature.
 
 \subsection{Encoding and Decoding Process}
+In this section, we use Figure \ref{apcode-7222-v5} to illustrate the encoding and decoding process of Approximate Code(7,2,2,2).
 
-The encoding process can be divided into two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). . .
+The encoding process consists of two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). 
+The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and
+the \emph{G-Phase} is expressed as a yellow triangle arrow, where $G$ is generated to verify $D_I$, $D_M$ and $Q$.
 
-In \emph{I-Phase}, $s$ groups of important parity sectors are generated
+The decoding process provides two modes: the approximate recovery mode and the full recovery mode.
+When no more than $m$ divices fail, Approximate Code guarantees full recovery of lost data.
+It should be noted that in the calculation of $G$ in \emph{G-Phase} and in the decoding process in full recovery mode, we consider $D_I$, $D_M$ and $Q$ as the same, so the minimum coding unit is chunk. When the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
 
-The decoding process can be divided into two modes: the approximate recovery mode (A-model) and the full recovery mode (F-model). . .
-
-
-\textcolor{blue}{We introduce RS-based and XOR-based Approximate Code due to space limitations}
+\textcolor{blue}{We then introduce RS-based and XOR-based Approximate Code}
 \subsubsection{RS-based Approximate Code}
 
+In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors and generate 2 groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF). The coding coefficient matrix is transformed from the Vandermonde matrix by elementary transformation.
+\textcolor{blue}{Coding matrix?}
 
+\iffalse
+\begin{equation}
+\begin{pmatrix} 
+1&  1&  1\\
+\alpha_0 & \alpha_1 & \alpha_2 \\
+\alpha_0^2+\alpha_3^2+\alpha_4^2*\alpha_0 & \alpha_1^2 +\alpha_3^2+\alpha_4^2*\alpha_1 & \alpha_2^2+\alpha_3^2+\alpha_4^2*\alpha_2  \\
+\alpha_0^3+\alpha_3^3+\alpha_4^3*\alpha_0 & \alpha_1^3 +\alpha_3^3+\alpha_4^3*\alpha_1 & \alpha_2^3+\alpha_3^3+\alpha_4^3*\alpha_2  \\
+\end{pmatrix} 
+\end{equation}
+\fi
 
-In \emph{phase 1}, we use RS$(h,s)$ to encode $h$ groups of important data sectors and generate $s$ groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF). 
 For example, $q_{1,1} = \alpha_0 d_{1,0} + \alpha_1 d_{1,1} + \alpha_2 d_{1,2}$.
-As shown in the blod box in Figure \ref{apcode-7222-v5}, we use RS(3,2) in this phase.
 \begin{equation}\label{q_ij}
     q_{i,j} = \sum_{k=0}^{h-1} \alpha_k^{j} d_{i,k}
 \end{equation}
 
-In \emph{phase 2}, we use RS$(n-m,m)$ to generate $m$ parity chunks labeled with $p_{i,j}$ from $n-m$ chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation \ref{p_ij_1} and \ref{p_ij_2}.
-Despite the difference in expression, the encoding process for $p_{i,j(i<t)}$ and $p_{i,j(i \geqslant t)}$ are same on chunk level because we treat $q_{i,j}$ and $b_{i,j}$ as the same on chunk level.
+In \emph{I-Phase}, we use RS(5,2) to generate 2 parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation \ref{p_ij_1} and \ref{p_ij_2}.
 For example, $p_{1,1} = \alpha_0^3 d_{1,0} + \alpha_1^3 d_{1,1} + \alpha_2^3 d_{1,2} + \alpha_3^3 q_{1,0} + \alpha_4^3 q_{1,1}$.
-As shown in orange chunks in Figure \ref{apcode-7222-v5}, we use RS(5,2) in this phase.
 
 \begin{equation}\label{p_ij_1}
     \mathop{p_{i,j}}\limits_{i<t} = 
     \sum_{k=0}^{h-1} \alpha_k^{s+j} d_{i,k} +
-    \sum_{l=0}^{s-1} \alpha_{l+h}^{s+j} q_{i,l}
+    \sum_{k=0}^{s-1} \alpha_{k+h}^{s+j} q_{i,k}
 \end{equation}
 \begin{equation}\label{p_ij_2}
     \mathop{p_{i,j}}\limits_{i \geqslant t} = 
     \sum_{k=0}^{n-m-1} \alpha_k^{s+j} d_{i,k}
 \end{equation}
 
-\subsubsection{Decoding Process}
-The decoding process can be partitioned into two modes: full recovery mode and approximate recovery mode. When no more than $m$ chunks lost, the system can fully recover.
-
-
+The full recovery decoding process of RS-based Approximate Code is obvious since it is the same as the decoding process of RS(5,2).
+For the approximate decoding process, there are 4 independent equations that can tolerate any 4 disk failures because the coding coefficient matrix is full rank.
 
 \subsection{Proof of Correctness}
 \subsection{Data Distribution}\label{Data Distribution}
+
 \subsection{Properties of Approximate Code}
 
 \section{Evaluation}\label{evaluation}
@@ -226,6 +258,6 @@ To Robert, for the bagels and explaining CMYK and color spaces.
 %
 % The next two lines define the bibliography style to be used, and the bibliography file.
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{ApproximareCode}
+\bibliography{ApproximateCode}
 
 \end{document}
