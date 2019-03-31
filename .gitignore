@@ -3,9 +3,7 @@
 acmart.pdf
 acmguide.pdf
 ApproximareCode.synctex.gz
-*.pdf
 *.log
-ApproximareCode.pdf
 *.aux
 *.cfg
 *.glo

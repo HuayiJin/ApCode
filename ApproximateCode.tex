@@ -12,8 +12,8 @@
 
 %-------------------------ATTANTION-------------------------%
 %                                                           %
-% red words should be removed or rewrite in later version   %
-% blue words need to be perfected or filled                 %
+% red words show the content that requires to be add        %
+% blue words need to be perfected or changed                %
 %                                                           %
 %-----------------------------------------------------------%
 
@@ -135,54 +135,48 @@ Based on Table [], the existing erasure codes cannot meet the requirements of vi
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
 
 \subsection{Design of Approximate Code}
-In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a \emph{chunk}. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{TEST-chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
+In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a \emph{chunk}. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.4\textwidth]{photo/TEST-chunk-sector.JPG}
-\caption{\textcolor{blue}{TEST--}A sample of chunk and sector}
-\label{TEST-chunk-sector}
+\includegraphics[width=0.35\textwidth,height=40mm]{photo/chunk-sector.JPG}
+\caption{A sample of chunks and sectors}
+\label{chunk-sector}
 \end{figure}
 
 In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $n-m$ chunks. 
-We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-7222-v5}.
+We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-72522}.
 For convenience, we label $h=n-m-s$ as the number of columns of important data that is storaged in $h \times t$ blocks in our assumption.
-Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$ and the relevant instructions will be shown in \ref{Data Distribution}.
 
-Based on the above definition, our design has 4 configurable parameters $(n, m, s,t)$ that uniquely determine the construction of Approximate Code.
-Figure \ref{apcode-7222-v5} shows an example of Approximate Codes with $n = 7$, $m = 2$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
+\textcolor{blue}{Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$ and the relevant instructions will be shown in ...}
+
+Based on the above definition, our design has 4 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
+Figure \ref{apcode-72522} shows an example of Approximate Codes with $n = 7$, $m = 2$, $r=5$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
 
 We then define the set of sectors as follows:
 \begin{itemize}
-    \item Important data sector set $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$
-    \item Minor data sector set $D_M=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < n-m \}$
-    \item Important parity sector set $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$
-    \item Global parity sector set $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$
+    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector set.
+    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector set.
+    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector set. 
+    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector set.
 \end{itemize}
 
 \begin{figure}[h]
 \centering
-
 \subfigure[sector label and encoding process]{
-    \includegraphics[width=0.32\textwidth]{photo/apcode-7222-v5.PDF}
-    \label{apcode-7222-v5-a}
+    \includegraphics[width=0.32\textwidth]{photo/apcode-72522.PDF}
+    \label{apcode-72522-a}
 }
 \subfigure[sector sets]{
     \includegraphics[width=0.13\textwidth]{photo/DDQG.PDF}
-    \label{apcode-7222-v5-b}
+    \label{apcode-72522-b}
 }
-\caption{A sample of Approximate Codes $(7,2,2,2)$ with 7 chunks where 2 of them are parity chunks (orange set $G$) and 4 other sectors (red set $Q$) are designed for encoding important data. In this example, there are 6 sectors (dark blue set $D_I$) for important data and 15 sectors (light blue set $D_M$) for minor data.}
-\label{apcode-7222-v5}
+\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are parity chunks (orange set $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue set $D_I$) for important data, 15 sectors (light blue set $D_M$) for minor data and 4 other sectors (red set $Q$) are designed for encoding important data.}
+\label{apcode-72522}
 \end{figure}
 
-\textcolor{red}{A variety of erasure codes can be used for the encoding and decoding process of Approximate Codes. Here we only introduce our RS-based design as an example. 
-Approximate Codes based on other erasure code schemes include XOR-based codes or MSR codes will be introduced in Section XXXXX}.
-
-In general, Approximate Code performs extra parities on important data.
-Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in any way, as long as their parity method are linearly independent of the way the important parity blocks are. Therefore, EC methods such as RS-based codes, XOR-based codes or MSR codes can be used to construct Approximate Code because it is essentially a way of data classification and data distribution, and current EC schemes do not assume anything about data feature.
-
 \subsection{Encoding and Decoding Process}
-In this section, we use Figure \ref{apcode-7222-v5} to illustrate the encoding and decoding process of Approximate Code(7,2,2,2).
+In this section, we use Figure \ref{apcode-72522} to illustrate the encoding and decoding process of Approximate Code$(7,2,5,2,2)$.
 
 The encoding process consists of two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). 
 The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and
@@ -190,15 +184,20 @@ the \emph{G-Phase} is expressed as a yellow triangle arrow, where $G$ is generat
 
 The decoding process provides two modes: the approximate recovery mode and the full recovery mode.
 When no more than $m$ divices fail, Approximate Code guarantees full recovery of lost data.
-It should be noted that in the calculation of $G$ in \emph{G-Phase} and in the decoding process in full recovery mode, we consider $D_I$, $D_M$ and $Q$ as the same, so the minimum coding unit is chunk. When the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
+When the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
+
+It should be noted that in the calculation of $G$ in \emph{G-Phase} and in the decoding process in full recovery mode, we consider $D_I$, $D_M$ and $Q$ as the same, and the minimum coding unit is chunk. That is, when we do not distinguish the importance of the data($s,t = 0$), the Approximate Code is a typical $m$ disk redundancy code.
+
+In general, Approximate Code performs extra parities on important data.
+Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in any way, as long as their parity method are linearly independent of the way the important parity blocks are. Therefore, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can be used to construct Approximate Code because it is essentially a way of data classification and data distribution, and current EC schemes do not assume anything about data feature.
 
 \textcolor{blue}{We then introduce RS-based and XOR-based Approximate Code}
 \subsubsection{RS-based Approximate Code}
 
-In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors and generate 2 groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation \ref{q_ij}, where $\alpha_k$ is the coefficient in Galois Field (GF). The coding coefficient matrix is transformed from the Vandermonde matrix by elementary transformation.
-\textcolor{blue}{Coding matrix?}
+In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors and generate 2 groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation (\ref{q_ij}), where $\alpha_k$ is the coefficient in Galois Field (GF). The coding coefficient matrix is transformed from the Vandermonde matrix by elementary transformation.
 
-\iffalse
+\textcolor{red}{Coding matrix like below?}
+
 \begin{equation}
 \begin{pmatrix} 
 1&  1&  1\\
@@ -207,14 +206,13 @@ In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors a
 \alpha_0^3+\alpha_3^3+\alpha_4^3*\alpha_0 & \alpha_1^3 +\alpha_3^3+\alpha_4^3*\alpha_1 & \alpha_2^3+\alpha_3^3+\alpha_4^3*\alpha_2  \\
 \end{pmatrix} 
 \end{equation}
-\fi
 
 For example, $q_{1,1} = \alpha_0 d_{1,0} + \alpha_1 d_{1,1} + \alpha_2 d_{1,2}$.
 \begin{equation}\label{q_ij}
     q_{i,j} = \sum_{k=0}^{h-1} \alpha_k^{j} d_{i,k}
 \end{equation}
 
-In \emph{I-Phase}, we use RS(5,2) to generate 2 parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation \ref{p_ij_1} and \ref{p_ij_2}.
+In \emph{I-Phase}, we use RS(5,2) to generate 2 parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation (\ref{p_ij_1}) and (\ref{p_ij_2}).
 For example, $p_{1,1} = \alpha_0^3 d_{1,0} + \alpha_1^3 d_{1,1} + \alpha_2^3 d_{1,2} + \alpha_3^3 q_{1,0} + \alpha_4^3 q_{1,1}$.
 
 \begin{equation}\label{p_ij_1}
@@ -230,12 +228,76 @@ For example, $p_{1,1} = \alpha_0^3 d_{1,0} + \alpha_1^3 d_{1,1} + \alpha_2^3 d_{
 The full recovery decoding process of RS-based Approximate Code is obvious since it is the same as the decoding process of RS(5,2).
 For the approximate decoding process, there are 4 independent equations that can tolerate any 4 disk failures because the coding coefficient matrix is full rank.
 
-\subsection{Proof of Correctness}
-\subsection{Data Distribution}\label{Data Distribution}
+\subsubsection{ XOR-based Approximate Code}
+\textcolor{red}{It is difficult to design XOR-based codes that m=2,s=1. Codes like EVENODD or STAR cannot be used to recover the important data when 3 disks fails. However, the desgin of m=1 is easy, because we only use horizontal parity blocks. }
+
+\textcolor{red}{One other way to generate XOR parity sectors is to divide each sector into multiple smaller blocks and apply EVENODD or RAID6 on them. This might be too complex but its correctness is easy to proof.}
+
+\subsection{\textcolor{red}{Proof of Correctness}}
+
+\subsection{Intermediate Layer}\label{Intermediate Layer}
+Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage module is needed to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution, implementing \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
+
+\subsubsection{Data Identification}
+For H.264 video data, we define I frames as important data, and P frames and B frames as minor data based on the analysis in the \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
+
+\subsubsection{Data Distribution}
+Fortunately, in an H.264 stream, each GOP begins with an I frame followed by a series of P and B frames. Therefore, we store data in units of GOPs. Our main purpose is to store I frames and other frames separately. For non-video data, we distribute it into multiple GOPs and treat it as a special part of the I frame. In the following description, we no longer consider such data especially and simply refer to them as I-frames.
+Our data distribution algorithm is as follows:
+
+\textcolor{red}{Need to draw an algorithm table from the following description}
+
+1. Calculate the important data ratio of each GOP in a stripe, and remember that the highest one is $\omega_{max}$.
+
+2. Adjust $t$ to find the important rate $\omega_{act}$ closest to $\omega_{max}$
+
+3. Divide each GOP into two parts: $\omega_{act}$: $1-\omega_{act}$.
+
+4. Store the former in $D_I$, the latter in $D_M$.
+
+In this regard, the decoding process is as follows:
+
+1. Read the entire strip and find the nmrst parameter of the strip record
+
+2. Calculate $\omega_{act}$ based on parameters
+
+3. Read the $I$ frame from $D_I$ until the next I frame is encountered
+
+4. Calculate the length read in 3, multiply by $(1-\omega_{act})/\omega_{act}$ , and read this length in $D_M$.
+
+5. Combine I frames with other frames.
+The data distribution scheme is shown in the figure \ref{Data-distribution-v2}.
+
+\textcolor{blue}{Some description about the figure...}
+
+Our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.35\textwidth]{photo/Data-distribution-v2.PDF}
+\caption{1}
+\label{Data-distribution-v2}
+\end{figure}
 
 \subsection{Properties of Approximate Code}
 
 \section{Evaluation}\label{evaluation}
+\begin{table}[ht]
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\begin{tabular}[c]{@{}c@{}}Code\\ Config\end{tabular} & \begin{tabular}[c]{@{}c@{}}Storage \\ Efficiency\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Important \\ Rate\end{tabular} \\ \hline
+(6,2,4,1,2) & 1.600 & 3 & 2 & 0.200 \\ \hline
+(8,2,6,1,1) & 1.371 & 3 & 2 & 0.143 \\ \hline
+(10,2,8,1,1) & 1.270 & 3 & 2 & 0.111 \\ \hline
+(11,2,9,1,1) & 1.238 & 3 & 2 & 0.100 \\ \hline
+(11,3,7,1,1) & 1.400 & 4 & 3 & 0.127 \\ \hline
+(13,3,10,1,2) & 1.327 & 4 & 3 & 0.184 \\ \hline
+(8,2,6,1,2) & 1.412 & 3 & 2 & 0.294 \\ \hline
+(8,2,4,1,2) & 1.455 & 3 & 2 & 0.455 \\ \hline
+(10,2,6,2,2) & 1.364 & 4 & 2 & 0.273 \\ \hline
+(11,3,8,2,2) & 1.467 & 5 & 3 & 0.200 \\ \hline
+\end{tabular}
+\end{table}
 \subsection{An Evaluation methodology}
 \subsubsection{Erasure Codes in Our Comparisons}
 \subsubsection{Platforms and Configurations}
