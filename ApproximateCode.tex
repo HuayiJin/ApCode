@@ -2,6 +2,14 @@
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \usepackage{subfigure}
+\usepackage{algorithm}
+%\usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{graphics}
+\usepackage{epsfig}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}} % Use Input in the format of Algorithm
+\renewcommand{\algorithmicensure}{\textbf{Output:}} % Use Output in the format of Algorithm
 
 \begin{document}
 
@@ -12,8 +20,9 @@
 
 %-------------------------ATTANTION-------------------------%
 %                                                           %
-% red words show the content that requires to be add        %
+% orange words show the content that requires to be add     %
 % blue words need to be perfected or changed                %
+% gray words are the placeholder which is easy to fill      %
 %                                                           %
 %-----------------------------------------------------------%
 
@@ -48,15 +57,39 @@ Existing erasure codes are designed to completely recover corrupted data. Typica
 
 We also find that video data is usually stored after being encoded to save space, while the encoded video data stream is non-uniformly sensitive to data loss, which makes it inappropriate to provide uniform fault tolerance using conventional erasure codes. With the motion compensation mechanism, common video coding algorithms such as H.264 only needs to store the complete content of key frames and a little part of other frames, which makes other frames rely on the key frames for computation while decoding.
 
-Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first strip. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes
+Therefore, we propose Approximate Codes for video data that significantly reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in (Figure 1), the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding and another $s$ sectors encoded for the first stripe. This allows the data of the first stripe to tolerate any $m+s$ disks corruption, so we specifically store important segments of video data there. With an appropriate data distribution scheme, non-critical data segments will still retain $(n-2m-s)/(n-m)$ data when any $m+s$ disks are corrupted, which makes
 recovery schemes such as interpolated or superpixel still effective. The Approximate Codes provide two recovery modes, full recovery and approximate recovery. The former applies to no more than $m$ disk corruptions and recovers all data, the latter applies to no more than $m+$s disks corruptions and retains important data.
 
-\textcolor{red}
+\textcolor{orange}
 {Sixth paragraph:
 Contribution of this paper, typically two or three contributions,
 (1)	Propose a novel code Approximate Code
 (2)	Give some mathematical proof to demonstrate the correctness of Approximate Code
 (3)	Conduct several experiments to demonstrate the effectiveness of Approximate Code (no digitals here)}
+
+\textcolor{orange}
+{Seventh paragraph:
+organization of the paper}
+
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text }
+
+
+\section{Related Work and Our Motivation}
+Video data can be classified into hot data and cold data, the former requiring high availability and reliability, which often relies on expensive replication approach. The latter's storage usually uses erasure codes schemes, because cold data far exceeds hot data, and erasure codes can guarantee its reliability with low monetary overhead. However, existing erasure code schemes do not consider the characteristics of video data and are not specifically designed for them.
+
+Videos are typically stored in lossy compression, so they are subject to a certain quality loss when stored compared to the original version, and the extent of this quality loss can be specified by the application. For high-quality coded video, it is difficult for the human eye to distinguish the difference between them and the original video, because they preserve most of the brightness information, which human eye is very sensitive to, and some color information is discarded, which human eye is not sensitive to. Therefore, the encoded video data has an uneven degree of importance, that is, the loss of some less important data is tolerable because it's hard for human eyes to detect. On the other hand, loss of important data will have more serious consequences.
+
+This section then introduces the relevant background and our motivation.
+
+\subsection{Existing Erasure Codes}
+
+\textcolor{orange}{Here we give some introduction to existing erasure codes
+Specifically, we need to illustrate the existing erasure codes for video applications in detail.
+Summarize the existing erasure codes in a table (assume Table 1), and illustrate them whether they satisfy the previous requirements in Section II.A}
+
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text }
 
 \begin{table*}[ht]
 \centering
@@ -73,23 +106,6 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \end{tabular}
 \end{table*}
 
-\textcolor{red}
-{Seventh paragraph:
-organization of the paper}
-
-\section{Related Work and Our Motivation}
-Video data can be classified into hot data and cold data, the former requiring high availability and reliability, which often relies on expensive replication approach. The latter's storage usually uses erasure codes schemes, because cold data far exceeds hot data, and erasure codes can guarantee its reliability with low monetary overhead. However, existing erasure code schemes do not consider the characteristics of video data and are not specifically designed for them.
-
-Videos are typically stored in lossy compression, so they are subject to a certain quality loss when stored compared to the original version, and the extent of this quality loss can be specified by the application. For high-quality coded video, it is difficult for the human eye to distinguish the difference between them and the original video, because they preserve most of the brightness information, which human eye is very sensitive to, and some color information is discarded, which human eye is not sensitive to. Therefore, the encoded video data has an uneven degree of importance, that is, the loss of some less important data is tolerable because it's hard for human eyes to detect. On the other hand, loss of important data will have more serious consequences.
-
-This section then introduces the relevant background and our motivation.
-
-\subsection{Existing Erasure Codes}
-
-\textcolor{red}{Here we give some introduction to existing erasure codes
-Specifically, we need to illustrate the existing erasure codes for video applications in detail.
-Summarize the existing erasure codes in a table (assume Table 1), and illustrate them whether they satisfy the previous requirements in Section II.A}
-
 \subsection{Video Storage}\label{video storage}
 For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded and compressed before storage. Lossy compression is a common method that provides a much lower compression ratio than lossless compression while ensuring tolerable loss of video quality, so we focus on such algorithms.
 
@@ -102,7 +118,11 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 
 H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
 
-\textcolor{red}{Something about H.264\dots}
+\textcolor{orange}{Something about H.264\dots}
+
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
+    }
 
 \subsection{Approximate Storage}
 Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
@@ -113,10 +133,10 @@ However, it is too naive to store data in approximate storage units indiscrimina
 
 In the storage of video data, as described in \ref{video storage}, the I frame is the key to decoding the entire GOP. An error in the I frame will cause a decoding error in the P frames and the B frames, and the data loss of the I frame will cause the entire GOP to be undecodable. In contrast, the error or loss of a P frame has less impact, while the B frame is most tolerant of errors because no other frame depends on it.
 
-\textcolor{red}{We define I frames are our important data}
+\textcolor{orange}{We define I frames are our important data}
 
 \subsection{Video Frame Recovery: Frame Interpolation}
-\textcolor{red}{Add something related to the former subsection}
+\textcolor{orange}{Add something related to the former subsection}
 
 \textcolor{blue}{In the circumstance of video approximate storage, it's common to lose some minor data making the video incomplete...}
 
@@ -135,7 +155,7 @@ Based on Table [], the existing erasure codes cannot meet the requirements of vi
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
 
 \subsection{Design of Approximate Code}
-In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a \emph{chunk}. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each strip is independent of the entire system, we only consider a single strip.
+In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a \emph{chunk}. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each stripe is independent of the entire system, we only consider a single stripe.
 
 \begin{figure}[ht]
 \centering
@@ -148,17 +168,15 @@ In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $
 We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-72522}.
 For convenience, we label $h=n-m-s$ as the number of columns of important data that is storaged in $h \times t$ blocks in our assumption.
 
-\textcolor{blue}{Although the choice of parameter $r$ is arbitrary, we recommend setting it to $r=s+h$ and the relevant instructions will be shown in ...}
-
-Based on the above definition, our design has 4 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
+Based on the above definition, our design has 5 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
 Figure \ref{apcode-72522} shows an example of Approximate Codes with $n = 7$, $m = 2$, $r=5$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
 
-We then define the set of sectors as follows:
+We then define the area of sectors as follows:
 \begin{itemize}
-    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector set.
-    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector set.
-    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector set. 
-    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector set.
+    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector area.
+    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector area.
+    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector area. 
+    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector area.
 \end{itemize}
 
 \begin{figure}[h]
@@ -171,7 +189,7 @@ We then define the set of sectors as follows:
     \includegraphics[width=0.13\textwidth]{photo/DDQG.PDF}
     \label{apcode-72522-b}
 }
-\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are parity chunks (orange set $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue set $D_I$) for important data, 15 sectors (light blue set $D_M$) for minor data and 4 other sectors (red set $Q$) are designed for encoding important data.}
+\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are parity chunks (orange area $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue area $D_I$) for important data, 15 sectors (light blue area $D_M$) for minor data and 4 other sectors (red area $Q$) are designed for encoding important data.}
 \label{apcode-72522}
 \end{figure}
 
@@ -196,7 +214,7 @@ Since our design guarantees the important data, the important parity and the min
 
 In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors and generate 2 groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation (\ref{q_ij}), where $\alpha_k$ is the coefficient in Galois Field (GF). The coding coefficient matrix is transformed from the Vandermonde matrix by elementary transformation.
 
-\textcolor{red}{Coding matrix like below?}
+\textcolor{orange}{Coding matrix like below?}
 
 \begin{equation}
 \begin{pmatrix} 
@@ -229,60 +247,88 @@ The full recovery decoding process of RS-based Approximate Code is obvious since
 For the approximate decoding process, there are 4 independent equations that can tolerate any 4 disk failures because the coding coefficient matrix is full rank.
 
 \subsubsection{ XOR-based Approximate Code}
-\textcolor{red}{It is difficult to design XOR-based codes that m=2,s=1. Codes like EVENODD or STAR cannot be used to recover the important data when 3 disks fails. However, the desgin of m=1 is easy, because we only use horizontal parity blocks. }
+\textcolor{orange}{It is difficult to design XOR-based codes that m=2,s=1. Codes like EVENODD or STAR cannot be used to recover the important data when 3 disks fails. However, the desgin of m=1 is easy, because we only use horizontal parity blocks. }
 
-\textcolor{red}{One other way to generate XOR parity sectors is to divide each sector into multiple smaller blocks and apply EVENODD or RAID6 on them. This might be too complex but its correctness is easy to proof.}
+\textcolor{orange}{One other way to generate XOR parity sectors is to divide each sector into multiple smaller blocks and apply EVENODD or RAID6 on them. This might be too complex but its correctness is easy to proof.}
 
-\subsection{\textcolor{red}{Proof of Correctness}}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
+}
+
+\subsection{\textcolor{orange}{Proof of Correctness}}
+\textcolor{orange}{I am not quite clear what to write here, our proof of correctness is organized in encoding and decoding process}
 
 \subsection{Intermediate Layer}\label{Intermediate Layer}
-Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage module is needed to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution, implementing \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
+Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage module is necessary to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution. It also implement \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
 
 \subsubsection{Data Identification}
 For H.264 video data, we define I frames as important data, and P frames and B frames as minor data based on the analysis in the \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
 
-\subsubsection{Data Distribution}
+\subsubsection{Data Distribution and Reorganization}
 Fortunately, in an H.264 stream, each GOP begins with an I frame followed by a series of P and B frames. Therefore, we store data in units of GOPs. Our main purpose is to store I frames and other frames separately. For non-video data, we distribute it into multiple GOPs and treat it as a special part of the I frame. In the following description, we no longer consider such data especially and simply refer to them as I-frames.
-Our data distribution algorithm is as follows:
+We define $\omega$ as the the important data ratio, which is the size of I-frames divided by the entire GOP size. We also define $\omega_{act}=\frac{D_I}{D_I+D_M}=\frac{(n-m) \times t}{(n-m) \times r-s \times t}$ as the actual important rate the code can provide. Algorithm \ref{alg-data-dist} and \ref{alg-data-reor} shows the data distribution and reorganization methods.
 
-\textcolor{red}{Need to draw an algorithm table from the following description}
+\begin{algorithm}[htb] 
+\caption{Data Distribution Algorithm} 
+\label{alg-data-dist} 
+\begin{algorithmic}[1] 
 
-1. Calculate the important data ratio of each GOP in a stripe, and remember that the highest one is $\omega_{max}$.
+\Require A stripe of video data.
+\Ensure $D_I$ and $D_M$.
 
-2. Adjust $t$ to find the important rate $\omega_{act}$ closest to $\omega_{max}$
+\State Divide video data into several GOPs;
+\State Calculate $\omega$ of each GOP, and mark the highest one as $\omega_{max}$;
+\State Adjust $t$ to find the closest $\omega_{act}$ to $\omega_{max}$;
+\Repeat 
+\State Divide each GOP into two parts: $\omega_{act}$ and $1-\omega_{act}$;
+\State Store the former in $D_I$, the latter in $D_M$;
+\Until All GOPs are classified;
+\end{algorithmic} 
+\end{algorithm}
 
-3. Divide each GOP into two parts: $\omega_{act}$: $1-\omega_{act}$.
 
-4. Store the former in $D_I$, the latter in $D_M$.
+\begin{algorithm}[htb] 
+\caption{Data Reorganization Algorithm} 
+\label{alg-data-reor} 
+\begin{algorithmic}[1] 
+\Require $D_I$ and $D_M$;
+\Ensure A stripe of video data;
+\State Find the parameter $(n,m,r,s,t)$ and calculate $\omega_{act}$.
+\Repeat
+\State Read an I frame from $D_I$ and record its length as $l$.
+\State Read $l \times \frac{1-\omega_{act}}{\omega_{act}}$ in $D_M$ and combine two parts.
+\Until All blocks are read.
+\end{algorithmic} 
+\end{algorithm}
 
-In this regard, the decoding process is as follows:
+The data distribution scheme is shown in the figure \ref{Data-distribution-v2}. We present $\omega_i$ as the $\omega$ of Data(i), and $\omega_{max} = \omega_2$.
+For example, Data 3 is represnted by blue, and its key segment (10\%) and part of minor segment (10\%) are settled in $D_I$.
+The main idea of our data distribution method is to guarantee that each GOP has the same proportion of storage in $D_I$ and $D_M$. This method improves flexibility because it is not necessary to maintain a map that marks the location of each GOP, which makes it is easy to add or delete data at any time. Meanwhile, the method is ideal for streaming video data generated in real time by applications such as monitoring.
 
-1. Read the entire strip and find the nmrst parameter of the strip record
-
-2. Calculate $\omega_{act}$ based on parameters
-
-3. Read the $I$ frame from $D_I$ until the next I frame is encountered
-
-4. Calculate the length read in 3, multiply by $(1-\omega_{act})/\omega_{act}$ , and read this length in $D_M$.
-
-5. Combine I frames with other frames.
-The data distribution scheme is shown in the figure \ref{Data-distribution-v2}.
-
-\textcolor{blue}{Some description about the figure...}
-
-Our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
-
-\begin{figure}[h]
+\begin{figure}[htb]
 \centering
-\includegraphics[width=0.35\textwidth]{photo/Data-distribution-v2.PDF}
-\caption{1}
+\includegraphics[width=0.4\textwidth]{photo/Data-distribution-v2.pdf}
+\caption{A sample of data distribution method, where the gray block in the upper right corner is the $Q$ area. Here for each data segment, $\omega_1=15\%$, $\omega_2=20\%$ and $\omega_3=10\%$, so the $\omega_{max}=20\%$.}
 \label{Data-distribution-v2}
 \end{figure}
 
+In addition, our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
+
+
 \subsection{Properties of Approximate Code}
 
+
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
+}
+
 \section{Evaluation}\label{evaluation}
-\begin{table}[ht]
+
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
+}
+
+\begin{table}[htbp]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
 \begin{tabular}[c]{@{}c@{}}Code\\ Config\end{tabular} & \begin{tabular}[c]{@{}c@{}}Storage \\ Efficiency\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Important \\ Rate\end{tabular} \\ \hline
@@ -298,27 +344,55 @@ Our approach can be applied to a variety of other data types. In fact, encoded m
 (11,3,8,2,2) & 1.467 & 5 & 3 & 0.200 \\ \hline
 \end{tabular}
 \end{table}
-\subsection{An Evaluation methodology}
-\subsubsection{Erasure Codes in Our Comparisons}
-\subsubsection{Platforms and Configurations}
-\subsubsection{Metrics}
-\subsubsection{Parameters and Assumption in Our Evaluation}
 
+\subsection{An Evaluation methodology}
+
+\subsubsection{Erasure Codes in Our Comparisons}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
+\subsubsection{Platforms and Configurations}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
+\subsubsection{Metrics}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+\subsubsection{Parameters and Assumption in Our Evaluation}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
 
 \subsection{Results}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
 \subsection{Analysis}
-Illustrate why Approximate Code achieve high reliability with low cost
+\textcolor{orange}{Illustrate why Approximate Code achieve high reliability with low cost}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
 \section{Conclusion}
 
-%
-% The acknowledgments section is defined using the "acks" environment (and NOT an unnumbered section). This ensures
-% the proper identification of the section in the article metadata, and the consistent spelling of the heading.
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
+
 \begin{acks}
-To Robert, for the bagels and explaining CMYK and color spaces.
+
 \end{acks}
 
-%
-% The next two lines define the bibliography style to be used, and the bibliography file.
+
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{ApproximateCode}
 
