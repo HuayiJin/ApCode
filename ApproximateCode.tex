@@ -48,7 +48,7 @@ Although multiple replicas can be used to ensure data availability and reliabili
 
 The recently proposed approximate storage strategy can significantly reduce the consumption of storage resources and energy. Common methods are to ensure the reliability of important data while storing the minor data on relatively unreliable media or reducing their error correction coding. Multimedia data is a typical application scenario for approximate storage because they can tolerate data corruption compared to other data. For example, video data records at least 20 frames per second, which makes it difficult for a typical user to perceive the loss of several frames. Also, some pixel errors in the image data do not affect the information of the entire picture. However, the direct application of approximate storage in a cloud storage system will result in minor data being unacceptable volatile.
 
-Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{apcode-72522-v2}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
+Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{apcode-72522-v3}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
 Other $s \times t$ sectors are encoded for important data thus raise its reliability. Approximate Codes ensure that the important data can tolerate $m+s$ device failures while all data can tolerate $m$ device failures.
 When more than $s$ disks fails, Approximate Code recovers the important data and then transfer the surviving data to the upper layer for recovery. With proper data distribution and algorithm design, the quality loss of video or image can be controlled within an acceptable range of applications, which leads to another important task in approximating storage that is distinguishing data importance.
 
@@ -143,11 +143,11 @@ In a system of $n$ disks, each disk can be divided into multiple sectors. We foc
 
 
 In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $n-m$ chunks. 
-We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-72522-v2}.
+We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-72522-v3}.
 For convenience, we label $h=n-m-s$ as the number of columns of important data that is storaged in $h \times t$ blocks in our assumption.
 
 Based on the above definition, our design has 5 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
-Figure \ref{apcode-72522-v2} shows an example of Approximate Codes with $n = 7$, $m = 2$, $r=5$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
+Figure \ref{apcode-72522-v3} shows an example of Approximate Codes with $n = 7$, $m = 2$, $r=5$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
 
 We then define the area of sectors as follows:
 \begin{itemize}
@@ -160,19 +160,19 @@ We then define the area of sectors as follows:
 \begin{figure}[h]
 \centering
 \subfigure[sector label and encoding process]{
-    \includegraphics[width=0.32\textwidth]{photo/apcode-72522-v2.PDF}
-    \label{apcode-72522-v2-a}
+    \includegraphics[width=0.32\textwidth]{photo/apcode-72522-v3.PDF}
+    \label{apcode-72522-v3-a}
 }
 \subfigure[sector sets]{
-    \includegraphics[width=0.13\textwidth]{photo/DDQG.PDF}
-    \label{apcode-72522-v2-b}
+    \includegraphics[width=0.13\textwidth]{photo/DDQP.jpg}
+    \label{apcode-72522-v3-b}
 }
 \caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are parity chunks (orange area $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue area $D_I$) for important data, 15 sectors (light blue area $D_M$) for minor data and 4 other sectors (red area $Q$) are designed for encoding important data.}
-\label{apcode-72522-v2}
+\label{apcode-72522-v3}
 \end{figure}
 
 \subsection{Encoding and Decoding Process}
-In this section, we use Figure \ref{apcode-72522-v2} to illustrate the encoding and decoding process of Approximate Code$(7,2,5,2,2)$.
+In this section, we use Figure \ref{apcode-72522-v3} to illustrate the encoding and decoding process of Approximate Code$(7,2,5,2,2)$.
 
 The encoding process consists of two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). 
 The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and
@@ -236,13 +236,32 @@ For the approximate decoding process, there are 4 independent equations that can
 \subsection{\textcolor{orange}{Proof of Correctness}}
 \textcolor{orange}{I am not quite clear what to write here, our proof of correctness is organized in encoding and decoding process}
 
-\subsection{Intermediate Layer}\label{Intermediate Layer}
+
+
+\subsection{Properties of Approximate Code}
+
+We analyze the nature of the approximate code from the following aspects, and the calculation method of the relevant indicators is given in Table x.
+Low cost Approximate code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
+Important data High reliability The approximate code guarantees the fault tolerance of the important data m+s.
+Flexibility The implementation of the approximate code can be based on RS, XOR or a mixture of the two; at the same time, the construction of the approximate code can also be used for encoding such as LRC or MSR.
+Lower recovery overhead Due to the shorter checksum chain of important data blocks, the recovery code of the approximate code in the full recovery mode is less expensive.
+
+
+\section{Implementation}
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.4\textwidth]{photo/implementation.pdf}
+\caption{111}
+\label{fig-implementation}
+\end{figure}
+
 Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage module is necessary to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution. It also implement \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
 
-\subsubsection{Data Identification}
+\subsection{Data Identification}
 For H.264 video data, we define I frames as important data, and P frames and B frames as minor data based on the analysis in the \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
 
-\subsubsection{Data Distribution and Reorganization}
+\subsection{Data Distribution and Reorganization}
 Fortunately, in an H.264 stream, each GOP begins with an I frame followed by a series of P and B frames. Therefore, we store data in units of GOPs. Our main purpose is to store I frames and other frames separately. For non-video data, we distribute it into multiple GOPs and treat it as a special part of the I frame. In the following description, we no longer consider such data especially and simply refer to them as I-frames.
 We define $\omega$ as the the important data ratio, which is the size of I-frames divided by the entire GOP size. We also define $\omega_{act}=\frac{D_I}{D_I+D_M}=\frac{(n-m) \times t}{(n-m) \times r-s \times t}$ as the actual important rate the code can provide. Algorithm \ref{alg-data-dist} and \ref{alg-data-reor} shows the data distribution and reorganization methods.
 
@@ -250,10 +269,8 @@ We define $\omega$ as the the important data ratio, which is the size of I-frame
 \caption{Data Distribution Algorithm} 
 \label{alg-data-dist} 
 \begin{algorithmic}[1] 
-
 \Require A stripe of video data.
 \Ensure $D_I$ and $D_M$.
-
 \State Divide video data into several GOPs;
 \State Calculate $\omega$ of each GOP, and mark the highest one as $\omega_{max}$;
 \State Adjust $t$ to find the closest $\omega_{act}$ to $\omega_{max}$;
@@ -293,14 +310,8 @@ The main idea of our data distribution method is to guarantee that each GOP has 
 In addition, our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
 
 
-\subsection{Properties of Approximate Code}
-
-
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
-}
-
-\section{Evaluation}\label{Evaluation}
+\section{Evaluation}\label{evaluation}
+In our evaluation, we first compare the approximate code with the RS code and some XOR-based code to demonstrate the performance benefits of our solution. Since 3DFTS is a typical erase code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the approximation code.
 
 \begin{table*}[ht]
 \centering
@@ -316,10 +327,6 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Minor Data)\end{tabular} & any $m$ disks & $m$ disks and $s$ sectors & high & high & high \\ \hline
 \end{tabular}
 \end{table*}
-
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
-}
 
 \begin{table}[htbp]
 \begin{tabular}{|c|c|c|c|c|}
@@ -338,7 +345,9 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \end{tabular}
 \end{table}
 
-\subsection{An Evaluation methodology}
+\subsection{Evaluation methodology}
+
+
 
 \subsubsection{Erasure Codes in Our Comparisons}
 \textcolor{gray}{
