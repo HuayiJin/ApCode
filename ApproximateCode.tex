@@ -67,6 +67,22 @@ The rest of the paper is organized as follows. In Section \ref{RelatedWork}, we 
 \section{Related Work and Our Motivation}\label{RelatedWork}
 This section presents background on erasure codes, related video storage methods, approximate storage, and our motivation.
 
+\begin{table}[]
+\begin{tabular}{|c|l|}
+\hline
+Symbols & Description                          \\ \hline\hline
+$n$     & the number of chunks in a stripe     \\ \hline
+$m$     & the number of parity chunks          \\ \hline
+$r$     & the number of sectors in a chunk     \\ \hline
+$s$     & the number of columns of $D_I$       \\ \hline
+$t$     & the number of rows of $D_I$          \\ \hline
+$D_I$   & the zone of important data sectors   \\ \hline
+$D_M$   & the zone of minor data sectors       \\ \hline
+$Q$     & the zone of important parity sectors \\ \hline
+$P$     & the zone of minor parity sectors     \\ \hline
+\end{tabular}
+\end{table}
+
 \subsection{Existing Erasure Codes}
 
 \textcolor{orange}{Here we give some introduction to existing erasure codes
@@ -256,7 +272,7 @@ Lower recovery overhead Due to the shorter checksum chain of important data bloc
 \label{fig-implementation}
 \end{figure}
 
-Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage module is necessary to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution. It also implement \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
+Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage system is necessary to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution. It also implement \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
 
 \subsection{Data Identification}
 For H.264 video data, we define I frames as important data, and P frames and B frames as minor data based on the analysis in the \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
@@ -311,7 +327,7 @@ In addition, our approach can be applied to a variety of other data types. In fa
 
 
 \section{Evaluation}\label{evaluation}
-In our evaluation, we first compare the approximate code with the RS code and some XOR-based code to demonstrate the performance benefits of our solution. Since 3DFTS is a typical erase code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the approximation code.
+This section introduces a series of experiments we have conducted to verify the efficiendy of the Approximate Code.
 
 \begin{table*}[ht]
 \centering
@@ -346,6 +362,7 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \end{table}
 
 \subsection{Evaluation methodology}
+In our evaluation, we first compare the Approximate Code with the RS code and some XOR-based codes to demonstrate the performance benefits of our solution. Since 3DFTS is a typical erasure code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the Approximate Code.
 
 
 
