@@ -8,6 +8,10 @@
 \usepackage{amsmath}
 \usepackage{graphics}
 \usepackage{epsfig}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{subfigure}
+
 \renewcommand{\algorithmicrequire}{\textbf{Input:}} % Use Input in the format of Algorithm
 \renewcommand{\algorithmicensure}{\textbf{Output:}} % Use Output in the format of Algorithm
 
@@ -48,7 +52,7 @@ Although multiple replicas can be used to ensure data availability and reliabili
 
 The recently proposed approximate storage strategy can significantly reduce the consumption of storage resources and energy. Common methods are to ensure the reliability of important data while storing the minor data on relatively unreliable media or reducing their error correction coding. Multimedia data is a typical application scenario for approximate storage because they can tolerate data corruption compared to other data. For example, video data records at least 20 frames per second, which makes it difficult for a typical user to perceive the loss of several frames. Also, some pixel errors in the image data do not affect the information of the entire picture. However, the direct application of approximate storage in a cloud storage system will result in minor data being unacceptable volatile.
 
-Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{apcode-72522-v3}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
+Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{apcode-72522}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
 Other $s \times t$ sectors are encoded for important data thus raise its reliability. Approximate Codes ensure that the important data can tolerate $m+s$ device failures while all data can tolerate $m$ device failures.
 When more than $s$ disks fails, Approximate Code recovers the important data and then transfer the surviving data to the upper layer for recovery. With proper data distribution and algorithm design, the quality loss of video or image can be controlled within an acceptable range of applications, which leads to another important task in approximating storage that is distinguishing data importance.
 
@@ -168,11 +172,9 @@ Based on Table [], the existing erasure codes cannot meet the requirements of vi
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
 
 \subsection{Design of Approximate Code}
-In a system of $n$ disks, each disk can be divided into multiple sectors. We focus on the $r$ sectors of the same logical position of each device, and we treat these $r$ sectors as a \emph{chunk}. The $r \times n$ sectors of $n$ chunks constitute a stripe, as shown in Figure \ref{chunk-sector} . We also use the term symbol in coding theory to refer to sectors. Since each stripe is independent of the entire system, we only consider a single stripe.
-
-
-In the $n$ chunks of each stripe, $m$ ones are for coding and in the remaining $n-m$ chunks. 
-We use $s \times t$ additional sectors for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows, as shown in Figure \ref{apcode-72522-v3}.
+We use Figure \ref{apcode-72522} to illustrate the construction of Approximate Code.
+In the $n$ chunks of each stripe, $m$ ones are for coding.
+In the remaining $n-m$ chunks, $s \times t$ additional sectors are for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows.
 For convenience, we label $h=n-m-s$ as the number of columns of important data that is storaged in $h \times t$ blocks in our assumption.
 
 Based on the above definition, our design has 5 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
@@ -180,100 +182,120 @@ Figure \ref{apcode-72522-v3} shows an example of Approximate Codes with $n = 7$,
 
 We then define the area of sectors as follows:
 \begin{itemize}
-    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector area.
-    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector area.
-    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector area. 
-    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector area.
+    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector zone.
+    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector zone.
+    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector zone. 
+    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector zone.
 \end{itemize}
 
 \begin{figure}[h]
 \centering
 \subfigure[sector label and encoding process]{
-    \includegraphics[width=0.32\textwidth]{photo/apcode-72522-v3.PDF}
-    \label{apcode-72522-v3-a}
+    \includegraphics[width=0.32\textwidth]{photo/apcode-72522.PDF}
+    \label{apcode-72522-a}
 }
 \subfigure[sector sets]{
-    \includegraphics[width=0.13\textwidth]{photo/DDQP.jpg}
-    \label{apcode-72522-v3-b}
+    \includegraphics[width=0.13\textwidth]{photo/DDQG.pdf}
+    \label{apcode-72522-b}
 }
-\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are parity chunks (orange area $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue area $D_I$) for important data, 15 sectors (light blue area $D_M$) for minor data and 4 other sectors (red area $Q$) are designed for encoding important data.}
-\label{apcode-72522-v3}
+\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are global parity chunks (orange zone $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue zone $D_I$) for important data, 15 sectors (light blue zone $D_M$) for minor data and 4 sectors (red zone $Q$) encode important data.}
+\label{apcode-72522}
 \end{figure}
 
 \subsection{Encoding and Decoding Process}
-In this section, we use Figure \ref{apcode-72522-v3} to illustrate the encoding and decoding process of Approximate Code$(7,2,5,2,2)$.
+We also use Figure \ref{apcode-72522} to illustrate the basic idea of encoding and decoding process of Approximate Code.
 
 The encoding process consists of two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). 
-The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and
-the \emph{G-Phase} is expressed as a yellow triangle arrow, where $G$ is generated to verify $D_I$, $D_M$ and $Q$.
+The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and the \emph{G-Phase} is expressed as a yellow triangle arrow, where $G$ is generated to verify $D_I$, $D_M$ and $Q$.
 
 The decoding process provides two modes: the approximate recovery mode and the full recovery mode.
-When no more than $m$ divices fail, Approximate Code guarantees full recovery of lost data.
-When the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
+When no more than $m$ divices fail, Approximate Code guarantees full recovery of lost data, and if the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
 
 It should be noted that in the calculation of $G$ in \emph{G-Phase} and in the decoding process in full recovery mode, we consider $D_I$, $D_M$ and $Q$ as the same, and the minimum coding unit is chunk. That is, when we do not distinguish the importance of the data($s,t = 0$), the Approximate Code is a typical $m$ disk redundancy code.
 
 In general, Approximate Code performs extra parities on important data.
-Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in any way, as long as their parity method are linearly independent of the way the important parity blocks are. Therefore, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can be used to construct Approximate Code because it is essentially a way of data classification and data distribution, and current EC schemes do not assume anything about data feature.
+Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in several ways. Therefore, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can be used to construct Approximate Code. 
 
-\textcolor{blue}{We then introduce RS-based and XOR-based Approximate Code}
-\subsubsection{RS-based Approximate Code}
+We then introduce two typical Approximate Code implementation schemes: RS-based and XOR-based Approximate Code. Different code selection of \emph{I-Phase} and \emph{G-Phase} will cause different effect.
 
-In \emph{I-Phase}, we use RS(3,2) to encode 3 groups of important data sectors and generate 2 groups of parity sectors labeled with $q_{i,j}$. The calculation of $q_{i,j}$ are defined by equation (\ref{q_ij}), where $\alpha_k$ is the coefficient in Galois Field (GF). The coding coefficient matrix is transformed from the Vandermonde matrix by elementary transformation.
+\subsection{RS-based Approximate Code}
 
-\textcolor{orange}{Coding matrix like below?}
+\begin{figure}[htp]
+\centering
+\subfigure[I-Phase]{\label{fig-Ap-RS-I}
+\begin{minipage}[b]{0.38\textwidth}
+\includegraphics[width=\textwidth]{photo/AP-RS-Iphase.pdf}
+\end{minipage}
+}
+\subfigure[G-Phase]{\label{fig-Ap-RS-G}
+\begin{minipage}[b]{0.38\textwidth}
+\includegraphics[width=\textwidth]{photo/AP-RS-Gphase.pdf}
+\end{minipage}
+}
+\subfigure[The decoding process of important data. $B_L$ represents the lost data vector and $B_S$ represents the surviving data vector. $C_L$ and $C_S$ are the coefficient matrices of $B_L$ and $B_S$ respectively.]{\label{fig-Ap-RS-en}
+\begin{minipage}[b]{0.38\textwidth}
+\includegraphics[width=\textwidth]{photo/AP-RS-Iphase-en.pdf}
+\end{minipage}
+}
+\caption{Generation Matrix of RS-based Approximate Code. 
+$D_{I0}$ to $D_{I2}$ (dark blue) are important data sectors.
+$D_{M0}$ to $D_{M4}$ (light blue) are minor data sectors.
+$Q_{0}$ and $Q_{1}$ are important parity sectors (red).
+$P_{0}$ and $P_{1}$ are global parity sectors (orange).}\label{fig-Ap-RS}
+\end{figure}
 
-\begin{equation}
-\begin{pmatrix} 
-1&  1&  1\\
-\alpha_0 & \alpha_1 & \alpha_2 \\
-\alpha_0^2+\alpha_3^2+\alpha_4^2*\alpha_0 & \alpha_1^2 +\alpha_3^2+\alpha_4^2*\alpha_1 & \alpha_2^2+\alpha_3^2+\alpha_4^2*\alpha_2  \\
-\alpha_0^3+\alpha_3^3+\alpha_4^3*\alpha_0 & \alpha_1^3 +\alpha_3^3+\alpha_4^3*\alpha_1 & \alpha_2^3+\alpha_3^3+\alpha_4^3*\alpha_2  \\
-\end{pmatrix} 
-\end{equation}
+Without loss of generality, we use Figure \ref{fig-Ap-RS} to introduce the construction method of RS-based Approximate Code with parameter ($7,2,5,2,2$).
 
-For example, $q_{1,1} = \alpha_0 d_{1,0} + \alpha_1 d_{1,1} + \alpha_2 d_{1,2}$.
+\subsubsection{Encoding and Decoding Process}
+In \emph{I-Phase}, we encode 3 groups of important data sectors $D_{I0}$ to $D_{I2}$ and generate 2 groups of parity sectors $Q_{0}$ and $Q_{1}$. 
+The calculation of $q_{i,j}$ are defined by equation (\ref{q_ij}) and shown in Figure \ref{fig-Ap-RS-I}, where $A_k$ is the coefficient in Galois Field (GF). 
+In fact, the encoding process of $Q_{0}$ and $Q_{1}$ should be considered as a special decoding case that $Q_{0}$ and $Q_{1}$ have lost.
+
 \begin{equation}\label{q_ij}
-    q_{i,j} = \sum_{k=0}^{h-1} \alpha_k^{j} d_{i,k}
+    \{ \sum_{j=0}^{h-1} A_{k,j} d_{i,j} + \sum_{j=0}^{s-1}A_{k,j+h} q_{i,j} = 0 
+    | 0 \leqslant i < t, 0 \leqslant k < s \}
 \end{equation}
 
-In \emph{I-Phase}, we use RS(5,2) to generate 2 parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation (\ref{p_ij_1}) and (\ref{p_ij_2}).
-For example, $p_{1,1} = \alpha_0^3 d_{1,0} + \alpha_1^3 d_{1,1} + \alpha_2^3 d_{1,2} + \alpha_3^3 q_{1,0} + \alpha_4^3 q_{1,1}$.
+In \emph{G-Phase}, we use RS(5,2) to generate 2 global parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation (\ref{p_ij_1}) and (\ref{p_ij_2}).
 
 \begin{equation}\label{p_ij_1}
-    \mathop{p_{i,j}}\limits_{i<t} = 
-    \sum_{k=0}^{h-1} \alpha_k^{s+j} d_{i,k} +
-    \sum_{k=0}^{s-1} \alpha_{k+h}^{s+j} q_{i,k}
+    \{ \sum_{j=0}^{h-1} A_{k,j} d_{i,j} + \sum_{j=0}^{s-1}A_{k,j+h} q_{i,j} = p_{i,k-s}  
+    | 0 \leqslant i < t, s \leqslant k < s+m \}
 \end{equation}
 \begin{equation}\label{p_ij_2}
-    \mathop{p_{i,j}}\limits_{i \geqslant t} = 
-    \sum_{k=0}^{n-m-1} \alpha_k^{s+j} d_{i,k}
+    \{ \sum_{j=0}^{h+s-1} A_{k,j} d_{i,j} = p_{i,k-s} 
+    | t \leqslant i < r, s \leqslant k < s+m \}
 \end{equation}
 
-The full recovery decoding process of RS-based Approximate Code is obvious since it is the same as the decoding process of RS(5,2).
-For the approximate decoding process, there are 4 independent equations that can tolerate any 4 disk failures because the coding coefficient matrix is full rank.
+In approximate recovery mode, assume that any $k$ chunks fail $(m < k \leqslant m+s)$. We reorganized important data blocks, important parity blocks, and global parity blocks into surviving blocks set $B_S$ and lost blocks set $B_L$. We label their corresponding coefficient matrices as $C_S$ and $C_L$, as shown in Figure \ref{fig-Ap-RS-en}. We use the following equation to fully recover lost blocks. 
+\begin{equation*}
+    B_L = (C_L)^{-1} \times C_S \times B_S
+\end{equation*}
+Furthermore, the encoding process of $Q_0$, $Q_1$, $P_0$ and $P_1$ of important data sectors are also calcuated by this equation.
 
-\subsubsection{ XOR-based Approximate Code}
-\textcolor{orange}{It is difficult to design XOR-based codes that m=2,s=1. Codes like EVENODD or STAR cannot be used to recover the important data when 3 disks fails. However, the desgin of m=1 is easy, because we only use horizontal parity blocks. }
+\subsubsection{Proof of Correctness}
+The guarantee of correctness is based on the choice of coefficients. Here we define the coefficient matrix as Vandermonde matrix.
 
-\textcolor{orange}{One other way to generate XOR parity sectors is to divide each sector into multiple smaller blocks and apply EVENODD or RAID6 on them. This might be too complex but its correctness is easy to proof.}
+The correctness of full recovery mode of RS-based Approximate Code is obvious since it is the same as the decoding process of RS(5,2), as shown in Figure \ref{fig-Ap-RS-G}.
+
+In approximate recovery mode, the key to ensuring that important data can tolerate any $m+s$ block failures is to prove that any $m+s$ columns in coefficient matrix is reversible. According to the number of global parity block losses (from 0 to $m$), the column combination of the coefficient matrix can be divided into $m+1$ cases. When no global parity sectors fail, the coefficient matrix must be full rank since it is a Vandermonde matrix. When some of global parity sectors fail, as $C_L$ in Figure \ref{fig-Ap-RS-en}, we calculate the coefficient determinant corresponding to the lost blocks. By expanding the coefficient determinant by the last column, we can get a Vandermonde determinant lacking a line, which is still full rank.
+
+
+\subsection{ XOR-based Approximate Code}
+We take RAID-6 code
 
 \textcolor{gray}{
     text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
 }
 
-\subsection{\textcolor{orange}{Proof of Correctness}}
-\textcolor{orange}{I am not quite clear what to write here, our proof of correctness is organized in encoding and decoding process}
-
-
-
 \subsection{Properties of Approximate Code}
 
-We analyze the nature of the approximate code from the following aspects, and the calculation method of the relevant indicators is given in Table x.
-Low cost Approximate code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
-Important data High reliability The approximate code guarantees the fault tolerance of the important data m+s.
-Flexibility The implementation of the approximate code can be based on RS, XOR or a mixture of the two; at the same time, the construction of the approximate code can also be used for encoding such as LRC or MSR.
-Lower recovery overhead Due to the shorter checksum chain of important data blocks, the recovery code of the approximate code in the full recovery mode is less expensive.
+We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table x.
+\begin{itemize}
+    \item Low cost. Approximate code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
+    \item High reliability for important data. The Approximate Code guarantees the fault tolerance of the important data $m+s$.
+    \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two; at the same time, the construction of the Approximate Code can also be used for encoding such as LRC or MSR.
+\end{itemize}
 
 
 \section{Implementation}
