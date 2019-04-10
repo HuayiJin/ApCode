@@ -71,6 +71,7 @@ The rest of the paper is organized as follows. In Section \ref{RelatedWork}, we 
 \section{Related Work and Our Motivation}\label{RelatedWork}
 This section presents background on erasure codes, related video storage methods, approximate storage, and our motivation.
 
+\iffalse
 \begin{table}[]
 \begin{tabular}{|c|l|}
 \hline
@@ -86,6 +87,7 @@ $Q$     & the zone of important parity sectors \\ \hline
 $P$     & the zone of minor parity sectors     \\ \hline
 \end{tabular}
 \end{table}
+\fi
 
 \subsection{Existing Erasure Codes}
 
@@ -110,10 +112,6 @@ For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of r
 
 H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
 
-
-\textcolor{orange}{Something about H.264\dots}
-
-
 H.264 classifies all frames into three different categories:
 \begin{enumerate}
     \item I frame: A frame that does not depend on other frame data, which means it can be decoded independently of other frames.
@@ -130,12 +128,6 @@ In order to prevent the circumstance where a P or B frame references another dis
 
 
 \subsubsection{Video Frame Recovery}
-
-
-\textcolor{orange}{Add something related to the former subsection}
-
-\textcolor{blue}{In the circumstance of video approximate storage, it's common to lose some minor data making the video incomplete...}
-
 
 In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation.
 
@@ -164,9 +156,25 @@ In the storage of video data, as described in \ref{video storage}, the I frame i
 
 Considering the vital role the I frame plays in the video coding, we therefore define I frame data as the critical data of a video file. Although some part of P frames may play a relatively important role in the decoding process of a video, it’s importance can not exceed that of the I frames.
 
+\begin{table}[ht]
+\centering 
+\caption{Comparison of fault tolerance and storage overhead between approximate storage, RS and Approximate Code}\label{tab-AS-RS-AP}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Scheme & \begin{tabular}[c]{@{}c@{}}Storage \\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}c@{}}Approximate\\ Storage\end{tabular} & very low & some bits & -\\ \hline
+RS(n-m,m) & $\frac{n}{n-m}$ & $m$ & $m$  \\ \hline
+\begin{tabular}[c]{@{}c@{}}Approximate\\ Code($n,m,r,s,t$)\end{tabular} &
+$\frac{n \times r}{(n-m)\times r -s\times t}$ & $m+s$ & $m$\\ \hline
+\end{tabular}
+\end{table}
 
 \subsection{Our Motivation}
-Based on Table [], the existing erasure codes cannot meet the requirements of video applications in the cloud storage system due to the following reasons. First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. To solve these two problems, we propose a new erasure code called approximation code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
+Based on Table \ref{tab-AS-RS-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons. 
+
+First, existing erasure codes generally reach or exceed 3DFTS, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. Last but not least, the current approximate storage methods are unreliable since they are not designed to tolerate disk level failure.
+
+To solve these problems, we propose a new erasure code called Approximation Code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}\label{ApCode}
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
@@ -290,45 +298,56 @@ We take RAID-6 code
 
 \subsection{Properties of Approximate Code}
 
-We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table x.
+We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table \ref{tab-AS-RS-AP}.
 \begin{itemize}
     \item Low cost. Approximate code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
     \item High reliability for important data. The Approximate Code guarantees the fault tolerance of the important data $m+s$.
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two; at the same time, the construction of the Approximate Code can also be used for encoding such as LRC or MSR.
 \end{itemize}
 
-
 \section{Implementation}
 
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.4\textwidth]{photo/implementation.pdf}
-\caption{111}
+\caption{Overview of Approximate Code implementation}
 \label{fig-implementation}
 \end{figure}
 
-Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage system is necessary to preprocess the data. In our design, the middle layer performs automatic data identification and data distribution. It also implement \emph{I-Phase} in the encoding process and approximate recovery mode in the decoding process.
+Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage layer.
+The approximate storage layer is responsible for the identification and allocation of data. It controls the EC module and implements the encoding and decoding work of the Approximate Code. 
 
 \subsection{Data Identification}
-For H.264 video data, we define I frames as important data, and P frames and B frames as minor data based on the analysis in the \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
+The identification of data importance can be specified by the upper application as well as automatically determined by the approximate storage layer. We focus on the latter and take video file as an example to introduce our method of automatically distinguishing importance.
+
+For video data encoded by H.264 or similar format, we define I frames as important data, while P frames and B frames as minor data based on the analysis in section \ref{video storage}. In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in \ref{evaluation}.
 
 \subsection{Data Distribution and Reorganization}
 Fortunately, in an H.264 stream, each GOP begins with an I frame followed by a series of P and B frames. Therefore, we store data in units of GOPs. Our main purpose is to store I frames and other frames separately. For non-video data, we distribute it into multiple GOPs and treat it as a special part of the I frame. In the following description, we no longer consider such data especially and simply refer to them as I-frames.
-We define $\omega$ as the the important data ratio, which is the size of I-frames divided by the entire GOP size. We also define $\omega_{act}=\frac{D_I}{D_I+D_M}=\frac{(n-m) \times t}{(n-m) \times r-s \times t}$ as the actual important rate the code can provide. Algorithm \ref{alg-data-dist} and \ref{alg-data-reor} shows the data distribution and reorganization methods.
+We define $\omega$ as the the important data ratio, which is the size of I-frames divided by the entire GOP size. We also define $\omega_{act}$ as the actual important rate the code can provide by equation \ref{eq-ome-act}.
+\begin{equation}\label{eq-ome-act}
+    \omega_{act}=\frac{D_I}{D_I+D_M}=\frac{(n-m) \times t}{(n-m) \times r-s \times t}
+\end{equation}
+
+  Algorithm \ref{alg-data-dist} and \ref{alg-data-reor} shows the data distribution and reorganization methods.
 
 \begin{algorithm}[htb] 
 \caption{Data Distribution Algorithm} 
 \label{alg-data-dist} 
 \begin{algorithmic}[1] 
-\Require A stripe of video data.
-\Ensure $D_I$ and $D_M$.
-\State Divide video data into several GOPs;
+
+\Require  $n$, $m$ and $s$ from the settings of approximate storage layer. Get the type of erasure code.
+\Ensure $D_I$, $D_M$, $Q$ and $G$.
+\While {true}
+\State Divide data into several segments (several GOPs for video data);
 \State Calculate $\omega$ of each GOP, and mark the highest one as $\omega_{max}$;
 \State Adjust $t$ to find the closest $\omega_{act}$ to $\omega_{max}$;
 \Repeat 
 \State Divide each GOP into two parts: $\omega_{act}$ and $1-\omega_{act}$;
 \State Store the former in $D_I$, the latter in $D_M$;
 \Until All GOPs are classified;
+\EndWhile
+
 \end{algorithmic} 
 \end{algorithm}
 
@@ -353,7 +372,7 @@ The main idea of our data distribution method is to guarantee that each GOP has 
 
 \begin{figure}[htb]
 \centering
-\includegraphics[width=0.4\textwidth]{photo/Data-distribution-v2.pdf}
+\includegraphics[width=0.32 \textwidth]{photo/Data-distribution-v2.pdf}
 \caption{A sample of data distribution method, where the gray block in the upper right corner is the $Q$ area. Here for each data segment, $\omega_1=15\%$, $\omega_2=20\%$ and $\omega_3=10\%$, so the $\omega_{max}=20\%$.}
 \label{Data-distribution-v2}
 \end{figure}
@@ -382,7 +401,7 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \begin{table}[htbp]
 \begin{tabular}{|c|c|c|c|c|}
 \hline
-\begin{tabular}[c]{@{}c@{}}Code\\ Config\end{tabular} & \begin{tabular}[c]{@{}c@{}}Storage \\ Efficiency\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Important \\ Rate\end{tabular} \\ \hline
+\begin{tabular}[c]{@{}c@{}}Code\\ Config\end{tabular} & \begin{tabular}[c]{@{}c@{}}Storage \\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Important \\ Rate\end{tabular} \\ \hline
 (6,2,4,1,2) & 1.600 & 3 & 2 & 0.200 \\ \hline
 (8,2,6,1,1) & 1.371 & 3 & 2 & 0.143 \\ \hline
 (10,2,8,1,1) & 1.270 & 3 & 2 & 0.111 \\ \hline
