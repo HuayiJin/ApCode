@@ -55,7 +55,7 @@ The recently proposed approximate storage strategy can significantly reduce the 
 
 //////////////////////
 
-Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{apcode-72522}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
+Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{fig-Ap-322}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
 Other $s \times t$ sectors are encoded for important data thus raise its reliability. Approximate Codes ensure that the important data can tolerate $m+s$ device failures while all data can tolerate $m$ device failures.
 When more than $s$ disks fails, Approximate Code recovers the important data and then transfer the surviving data to the upper layer for recovery. 
 
@@ -107,9 +107,9 @@ Summarize the existing erasure codes in a table (assume Table 1), and illustrate
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.35\textwidth,height=40mm]{photo/chunk-sector.JPG}
-\caption{A sample of chunks and sectors}
-\label{chunk-sector}
+\includegraphics[width=0.4\textwidth,height=40mm]{photo/chunk.pdf}
+\caption{A sample of chunks and stripes}
+\label{fig-chunk}
 \end{figure}
 
 \textcolor{gray}{
@@ -186,124 +186,27 @@ First, existing erasure codes generally reach or exceed 3DFTS, and use more than
 To solve these problems, we propose a new erasure code called Approximation Code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}\label{ApCode}
-In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in \ref{evaluation}.
-
+In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in Section \ref{evaluation}.
+ 
 \subsection{Design of Approximate Code}
-We use Figure \ref{apcode-72522} to illustrate the construction of Approximate Code.
-In the $n$ chunks of each stripe, $m$ ones are for coding.
-In the remaining $n-m$ chunks, $s \times t$ additional sectors are for coding important data, where $s$ is the number of the columns and $t$ is the number of the rows.
-For convenience, we label $h=n-m-s$ as the number of columns of important data that is storaged in $h \times t$ blocks in our assumption.
-
-Based on the above definition, our design has 5 configurable parameters $(n, m, r, s,t)$ that uniquely determine the construction of Approximate Code.
-Figure \ref{apcode-72522-v3} shows an example of Approximate Codes with $n = 7$, $m = 2$, $r=5$, $s=2$ and $t = 2$, where we label the data disks with $d_{i,j}$, the important data parity sectors with $q_{i,j}$ and the minor parity sectors with $p_{i,j}$.
-
-We then define the area of sectors as follows:
-\begin{itemize}
-    \item $D_I=\{d_{i,j}|0\leqslant i < t, 0\leqslant j < h \}$ important data sector zone.
-    \item $D_M=\{d_{i,j}|t\leqslant i < r, 0\leqslant j < n-m \}$ minor data sector zone.
-    \item $Q=\{q_{i,j}|0\leqslant i < t, 0\leqslant j < s \}$ important parity sector zone. 
-    \item $G=\{p_{i,j}|0\leqslant i < r, 0\leqslant j < m \}$ global parity sector zone.
-\end{itemize}
+We use Figure \ref{fig-Ap-322} to illustrate the construction of Approximate Code. We focus on a system cons
 
 \begin{figure}[h]
 \centering
-\subfigure[sector label and encoding process]{
-    \includegraphics[width=0.32\textwidth]{photo/apcode-72522.PDF}
-    \label{apcode-72522-a}
-}
-\subfigure[sector sets]{
-    \includegraphics[width=0.13\textwidth]{photo/DDQG.pdf}
-    \label{apcode-72522-b}
-}
-\caption{A sample of Approximate Codes $(7,2,5,2,2)$ with 7 chunks where 2 of them are global parity chunks (orange zone $G$) and each chunk has 5 sectors. In this example, there are 6 sectors (dark blue zone $D_I$) for important data, 15 sectors (light blue zone $D_M$) for minor data and 4 sectors (red zone $Q$) encode important data.}
-\label{apcode-72522}
+\includegraphics[width=0.4\textwidth]{photo/AP-kmha-v2.pdf}
+\caption{A sample of Approximate Codes $(3,2,2)$ with $h=2$ layers of devices, where each layer contains $k=3$ data devices and $m=2$ parity devices.}
+\label{fig-Ap-322}
 \end{figure}
 
+
+
+
 \subsection{Encoding and Decoding Process}
-We also use Figure \ref{apcode-72522} to illustrate the basic idea of encoding and decoding process of Approximate Code.
 
-The encoding process consists of two phases: the important coding phase (\emph{I-Phase}) and the global coding phase (\emph{G-Phase}). 
-The \emph{I-Phase} is expressed as two red arrows in the blod box, where $Q$ is generated to verify $D_I$, and the \emph{G-Phase} is expressed as a yellow triangle arrow, where $G$ is generated to verify $D_I$, $D_M$ and $Q$.
-
-The decoding process provides two modes: the approximate recovery mode and the full recovery mode.
-When no more than $m$ divices fail, Approximate Code guarantees full recovery of lost data, and if the number of failed devices is larger than $m$ but no more than $m+s$, Approximate Code guarantees full recovery of lost important data, which require $D_I$, $Q$ and part of $G$ for joint recovery.
-
-It should be noted that in the calculation of $G$ in \emph{G-Phase} and in the decoding process in full recovery mode, we consider $D_I$, $D_M$ and $Q$ as the same, and the minimum coding unit is chunk. That is, when we do not distinguish the importance of the data($s,t = 0$), the Approximate Code is a typical $m$ disk redundancy code.
-
-In general, Approximate Code performs extra parities on important data.
-Since our design guarantees the important data, the important parity and the minor data blocks completely fill $n-m$ chunks, we can construct the remaining $m$ parity chunks in several ways. Therefore, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can be used to construct Approximate Code. 
-
-We then introduce two typical Approximate Code implementation schemes: RS-based and XOR-based Approximate Code. Different code selection of \emph{I-Phase} and \emph{G-Phase} will cause different effect.
 
 \subsection{RS-based Approximate Code}
 
-\begin{figure}[htp]
-\centering
-\subfigure[I-Phase]{\label{fig-Ap-RS-I}
-\begin{minipage}[b]{0.38\textwidth}
-\includegraphics[width=\textwidth]{photo/AP-RS-Iphase.pdf}
-\end{minipage}
-}
-\subfigure[G-Phase]{\label{fig-Ap-RS-G}
-\begin{minipage}[b]{0.38\textwidth}
-\includegraphics[width=\textwidth]{photo/AP-RS-Gphase.pdf}
-\end{minipage}
-}
-\subfigure[The decoding process of important data. $B_L$ represents the lost data vector and $B_S$ represents the surviving data vector. $C_L$ and $C_S$ are the coefficient matrices of $B_L$ and $B_S$ respectively.]{\label{fig-Ap-RS-en}
-\begin{minipage}[b]{0.38\textwidth}
-\includegraphics[width=\textwidth]{photo/AP-RS-Iphase-en.pdf}
-\end{minipage}
-}
-\caption{Generation Matrix of RS-based Approximate Code. 
-$D_{I0}$ to $D_{I2}$ (dark blue) are important data sectors.
-$D_{M0}$ to $D_{M4}$ (light blue) are minor data sectors.
-$Q_{0}$ and $Q_{1}$ are important parity sectors (red).
-$P_{0}$ and $P_{1}$ are global parity sectors (orange).}\label{fig-Ap-RS}
-\end{figure}
 
-Without loss of generality, we use Figure \ref{fig-Ap-RS} to introduce the construction method of RS-based Approximate Code with parameter ($7,2,5,2,2$).
-
-\subsubsection{Encoding and Decoding Process}
-In \emph{I-Phase}, we encode 3 groups of important data sectors $D_{I0}$ to $D_{I2}$ and generate 2 groups of parity sectors $Q_{0}$ and $Q_{1}$. 
-The calculation of $q_{i,j}$ are defined by equation (\ref{q_ij}) and shown in Figure \ref{fig-Ap-RS-I}, where $A_k$ is the coefficient in Galois Field (GF). 
-In fact, the encoding process of $Q_{0}$ and $Q_{1}$ should be considered as a special decoding case that $Q_{0}$ and $Q_{1}$ have lost.
-
-\begin{equation}\label{q_ij}
-    \{ \sum_{j=0}^{h-1} A_{k,j} d_{i,j} + \sum_{j=0}^{s-1}A_{k,j+h} q_{i,j} = 0 
-    | 0 \leqslant i < t, 0 \leqslant k < s \}
-\end{equation}
-
-In \emph{G-Phase}, we use RS(5,2) to generate 2 global parity chunks labeled with $p_{i,j}$ from 5 chunks consist of data sectors and important parity sectors. The calculation of $p_{i,j}$ are defined by equation (\ref{p_ij_1}) and (\ref{p_ij_2}).
-
-\begin{equation}\label{p_ij_1}
-    \{ \sum_{j=0}^{h-1} A_{k,j} d_{i,j} + \sum_{j=0}^{s-1}A_{k,j+h} q_{i,j} = p_{i,k-s}  
-    | 0 \leqslant i < t, s \leqslant k < s+m \}
-\end{equation}
-\begin{equation}\label{p_ij_2}
-    \{ \sum_{j=0}^{h+s-1} A_{k,j} d_{i,j} = p_{i,k-s} 
-    | t \leqslant i < r, s \leqslant k < s+m \}
-\end{equation}
-
-In approximate recovery mode, assume that any $k$ chunks fail $(m < k \leqslant m+s)$. We reorganized important data blocks, important parity blocks, and global parity blocks into surviving blocks set $B_S$ and lost blocks set $B_L$. We label their corresponding coefficient matrices as $C_S$ and $C_L$, as shown in Figure \ref{fig-Ap-RS-en}. We use the following equation to fully recover lost blocks. 
-\begin{equation*}
-    B_L = (C_L)^{-1} \times C_S \times B_S
-\end{equation*}
-Furthermore, the encoding process of $Q_0$, $Q_1$, $P_0$ and $P_1$ of important data sectors are also calcuated by this equation.
-
-\subsubsection{Proof of Correctness}
-The guarantee of correctness is based on the choice of coefficients. Here we define the coefficient matrix as Vandermonde matrix.
-
-The correctness of full recovery mode of RS-based Approximate Code is obvious since it is the same as the decoding process of RS(5,2), as shown in Figure \ref{fig-Ap-RS-G}.
-
-In approximate recovery mode, the key to ensuring that important data can tolerate any $m+s$ block failures is to prove that any $m+s$ columns in coefficient matrix is reversible. According to the number of global parity block losses (from 0 to $m$), the column combination of the coefficient matrix can be divided into $m+1$ cases. When no global parity sectors fail, the coefficient matrix must be full rank since it is a Vandermonde matrix. When some of global parity sectors fail, as $C_L$ in Figure \ref{fig-Ap-RS-en}, we calculate the coefficient determinant corresponding to the lost blocks. By expanding the coefficient determinant by the last column, we can get a Vandermonde determinant lacking a line, which is still full rank.
-
-
-\subsection{ XOR-based Approximate Code}
-We take RAID-6 code
-
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text 
-}
 
 \subsection{Properties of Approximate Code}
 
@@ -313,6 +216,7 @@ We analyze the nature of the Approximate Code from the following aspects, and th
     \item High reliability for important data. The Approximate Code guarantees the fault tolerance of the important data $m+s$.
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two; at the same time, the construction of the Approximate Code can also be used for encoding such as LRC or MSR.
 \end{itemize}
+
 
 \section{Implementation}\label{Implementation}
 
@@ -388,6 +292,31 @@ The main idea of our data distribution method is to guarantee that each GOP has 
 
 In addition, our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
 
+\section{Experimental Setup}
+
+\subsection{Evaluation methodology}
+In our evaluation, we first compare the Approximate Code with the RS code and some XOR-based codes to demonstrate the performance benefits of our solution. Since 3DFTS is a typical erasure code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the Approximate Code.
+
+
+
+\subsubsection{Erasure Codes in Our Comparisons}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
+\subsubsection{Platforms and Configurations}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+
+\subsubsection{Metrics}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
+\subsubsection{Parameters and Assumption in Our Evaluation}
+\textcolor{gray}{
+    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+}
 
 \section{Evaluation}\label{evaluation}
 This section introduces a series of experiments we have conducted to verify the efficiendy of the Approximate Code.
@@ -424,29 +353,6 @@ SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low
 \end{tabular}
 \end{table}
 
-\subsection{Evaluation methodology}
-In our evaluation, we first compare the Approximate Code with the RS code and some XOR-based codes to demonstrate the performance benefits of our solution. Since 3DFTS is a typical erasure code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the Approximate Code.
-
-
-
-\subsubsection{Erasure Codes in Our Comparisons}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
-
-\subsubsection{Platforms and Configurations}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
-
-\subsubsection{Metrics}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
-\subsubsection{Parameters and Assumption in Our Evaluation}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
 
 \subsection{Results}
 \textcolor{gray}{
@@ -461,6 +367,8 @@ In our evaluation, we first compare the Approximate Code with the RS code and so
     text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
     text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
 }
+
+
 \section{Conclusion}\label{Conclusion}
 
 \textcolor{gray}{
