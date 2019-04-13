@@ -152,7 +152,7 @@ The methods are relied on the completeness of some video frame, which enhances t
 \subsection{Approximate Storage}
 Storage techniques nowadays generally regard all information of the same importance, which causes significant costs in energy, disk drives and computing resources. But not all data need high-reliability storage for its backup. That is when the concept of approximate storage is introduced. Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
 
-Use cases for approximate storage range from transient memory to embedded settings and mass storage cloud servers. Mapping approximate data onto blocks that have exhausted their hardware error correction resources, for example, to extend memory endurance. On embedded settings, it enables the reduction of the cost of accesses and preserve battery life to loosen the capacity constraints./ref{sampson2014approximate} Here, in data-center-scale video database, approximate storage can provide multiple levels of fault tolerance for data of different importance, avoiding redundant backup for the less-important data, thus saving a significant amount of space.
+Use cases for approximate storage range from transient memory to embedded settings and mass storage cloud servers. Mapping approximate data onto blocks that have exhausted their hardware error correction resources, for example, to extend memory endurance. On embedded settings, it enables the reduction of the cost of accesses and preserve battery life to loosen the capacity constraints. \cite{sampson2014approximate} Here, in data-center-scale video database, approximate storage can provide multiple levels of fault tolerance for data of different importance, avoiding redundant backup for the less-important data, thus saving a significant amount of space.
 
 
 Approximate storage loosens the requirement of storage reliability by allowing quality loss of some specific data. Therefore, programmers can specify the importance of the data segments and assign them to different storage blocks. The critical data is still safe because they are stored and sufficiently backed up by expensive and highly reliable storage devices. Meanwhile, non-critical data is exposed to error, thus increasing storage density and saving cost.
@@ -189,22 +189,33 @@ To solve these problems, we propose a new erasure code called Approximation Code
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in Section \ref{evaluation}.
  
 \subsection{Design of Approximate Code}
-We use Figure \ref{fig-Ap-322} to illustrate the construction of Approximate Code. We focus on a system cons
+The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $h$ and $a$. 
+The nodes are divided into $h$ layers, and in each layer, $k$ data nodes generate $r$ local parity nodes. 
+We assume that each data node is composed of multiple chunks, while important data occupies $a$ of them.
+The global parity chunks are calculated by the important data chunks from $h$ nodes between layers so they only occupy $a \times k$ nodes of storage space.
+The construction of Approximate Code(3,2,2,1/3) can be illustrated by Figure \ref{fig-Ap-322}, where $X_i$ and $Y_i$ are data nodes, $P_{X/Yi}$ are local parity nodes and $G_i$ are global parity chunks. In this example, global parity chunks only consume 1 node storage space.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.45\textwidth]{photo/AP-kmha-v4.pdf}
-\caption{A sample of Approximate Codes $(3,2,2)$ with $h=2$ layers of devices, where each layer contains $k=3$ data devices and $m=2$ parity devices.}
+\caption{A sample of Approximate Codes $(3,2,2,1/3)$ with $h=2$ layers of devices, where each layer contains $k=3$ data devices and $r=2$ parity devices.
+The important data occupies $1/3$ of the total data node.
+Data nodes are marked as water green and the more important data is marked in darker color. Local parity nodes are marked orange and global parity chunks are marked red.}
 \label{fig-Ap-322}
 \end{figure}
 
+\subsection{Encoding Process}
+The encoding process of Approximate Code is simple, which can be divided into 2 parts: local and global.
 
+The local encoding process takes place in the layer, where data are encoded in node level. In fact, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can all be used to construct the local parity nodes for different advantages.
 
+The global encoding process is independent of the local encoding process and is only for important data. It is designed to encode important data across layers in the simplest way, so we use XOR to generate global parity chunks.
+The global parity chunks can be stored in another layer or other nodes. The data layer and the global parity layer can be rotated to avoid uneven distribution of data.
 
+\subsubsection{RS-based Approximate Code}
 \subsection{Encoding and Decoding Process}
+The encoding process of Approximate Code is the same 
 
-
-\subsection{RS-based Approximate Code}
 
 
 
