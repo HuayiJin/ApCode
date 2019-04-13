@@ -107,7 +107,7 @@ Summarize the existing erasure codes in a table (assume Table 1), and illustrate
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.4\textwidth,height=40mm]{photo/chunk.pdf}
+\includegraphics[width=0.3\textwidth]{photo/chunk.pdf}
 \caption{A sample of chunks and stripes}
 \label{fig-chunk}
 \end{figure}
@@ -167,16 +167,18 @@ Considering the vital role the I frame plays in the video coding, we therefore d
 
 \begin{table}[ht]
 \centering 
-\caption{Comparison of fault tolerance and storage overhead between approximate storage, RS and Approximate Code}\label{tab-AS-RS-AP}
-\begin{tabular}{|c|c|c|c|}
+\caption{Comparison of fault tolerance and storage overhead between approximate storage, EC and Approximate Code}\label{tab-AS-RS-AP}
+\begin{tabular}{|c|c|c|c|c|}
 \hline
-Scheme & \begin{tabular}[c]{@{}c@{}}Storage \\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Minor)\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate\\ Storage\end{tabular} & very low & some bits & -\\ \hline
-RS(n-m,m) & $\frac{n}{n-m}$ & $m$ & $m$  \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate\\ Code($n,m,r,s,t$)\end{tabular} &
-$\frac{n \times r}{(n-m)\times r -s\times t}$ & $m+s$ & $m$\\ \hline
+\multicolumn{2}{|c|}{Schemes}  & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Realibilities & Performance \\ \hline\hline
+\multirow{2}{*}{EC} & RS & high & high & medium \\ \cline{2-5} 
+\multicolumn{1}{|c|}{} & RAID 6 & medium & medium & high \\ \hline
+\multicolumn{2}{|c|}{Ap-Storage}& low & very low & high \\ \hline
+\multirow{2}{*}{Ap-Code}& Imp & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5} 
+ & Minor &  & medium & medium \\ \hline
 \end{tabular}
 \end{table}
+
 
 \subsection{Our Motivation}
 Based on Table \ref{tab-AS-RS-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons. 
@@ -193,7 +195,7 @@ The construction of the Approximate Code is determined by 4 parameters $k$, $r$,
 The nodes are divided into $h$ layers, and in each layer, $k$ data nodes generate $r$ local parity nodes. 
 We assume that each data node is composed of multiple chunks, while important data occupies $a$ of them.
 The global parity chunks are calculated by the important data chunks from $h$ nodes between layers so they only occupy $a \times k$ nodes of storage space.
-The construction of Approximate Code(3,2,2,1/3) can be illustrated by Figure \ref{fig-Ap-322}, where $X_i$ and $Y_i$ are data nodes, $P_{X/Yi}$ are local parity nodes and $G_i$ are global parity chunks. In this example, global parity chunks only consume 1 node storage space.
+The construction of Approximate Code(3,2,2,1/3) can be illustrated by Figure \ref{fig-Ap-322}, where $X_i$ and $Y_i$ are data nodes, $P_{X/Yi}$ are local parity nodes and $G_i$ are global parity chunks. In this example, global parity chunks only consume 1 node of storage space.
 
 \begin{figure}[h]
 \centering
@@ -204,20 +206,70 @@ Data nodes are marked as water green and the more important data is marked in da
 \label{fig-Ap-322}
 \end{figure}
 
-\subsection{Encoding Process}
+\subsection{Overview of the Coding Scheme}
+\subsubsection{Encoding Process}
+
 The encoding process of Approximate Code is simple, which can be divided into 2 parts: local and global.
-
 The local encoding process takes place in the layer, where data are encoded in node level. In fact, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can all be used to construct the local parity nodes for different advantages.
-
 The global encoding process is independent of the local encoding process and is only for important data. It is designed to encode important data across layers in the simplest way, so we use XOR to generate global parity chunks.
 The global parity chunks can be stored in another layer or other nodes. The data layer and the global parity layer can be rotated to avoid uneven distribution of data.
 
-\subsubsection{RS-based Approximate Code}
-\subsection{Encoding and Decoding Process}
-The encoding process of Approximate Code is the same 
+\subsubsection{Decoding Process}
+Approximate Code decodes important and minor data in different ways. Since the minor data is only encoded in local way, its decoding process is on the contrary.
+The important data is encoded in both local and global ways, so all the local and global parity chunks are used to decode it, which can be divided into 3 steps:
+\begin{enumerate}
+\item Inter-layer check, reconstruct data using global parity chunks until it exceeds fault tolerance.
+\item In-layer check, reconstruct data using local parity chunks until it exceeds fault tolerance.
+\item Inter-layer check again, reconstruct using the global parity chunks.
+\end{enumerate}
+
+\subsection{Recovery Mode}
+When the number of nodes lost per layer does not exceed $r$, the Approximate Code completely recovers all data in \emph{full recovery mode}. If the damage is more severe, the Approximate Code enters the \emph{approximate recovery mode}.
+
+\subsubsection{Full Recovery Mode}
+In general, our parameter settings guarantee $h<k$, so the global parity chain is shorter than the local one and has a lower reconstruct overhead.
+In addition, the global parity chunks are encoded by XOR, which results in high decoding speed.
+Therefore, important data blocks tend to recover data using global parity blocks whenever possible, which makes the Approximate Code have low overall computational overhead and reconstruction costs in \emph{full recovery mode}.
 
 
 
+
+\subsubsection{Approximate Recovery Mode}
+
+
+
+\subsection{RS-based Approximate Code}
+\subsection{XOR-based Approximate Code}
+
+
+
+\subsection{Fault Tolerance}
+In this section we give the fault tolerance of important and secondary data in the approximate code.
+We first prove the correctness of our decoding process, and then write a program to exhaust all node failures, giving the data recovery capability under any node loss.
+Take the approximate code ($3, 2, 2, 1/3$) as an example.
+
+\iffalse
+\subsection{Reconstruct Cost}
+In this section, we introduce the recovery overhead for several common failure cases of Approximate Code. The reconstruct cost is defined as the 
+\subsubsection{Single node failure}
+When any one data node fails, the reconstruction cost of minor data is $k$ read and 1 write, while important data has the cost of $h$ read and 1 write. So the total amount of data that needs to be transferred is 
+$$ (1-a)*(k+1) + a*(h+1) $$.
+
+For example, when node $X_0$ is lost in case of Approximate Codes $(3,2,2,1/3)$. The amount of data required to rebuild a node is:$\frac{2}{3}*4+\frac{1}{3}*3=\frac{11}{3}$
+\fi
+
+
+\begin{table}[ht]
+\centering 
+\caption{Comparison of storage overhead and reconstruction cost between Approximate Code, RS and RAID-6.}\label{tab-AS-RS-AP}
+\begin{tabular}{|c|c|c|}
+\hline
+EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}Reconstruction Cost\\ (single data node failure)\end{tabular} \\ \hline
+RS($k,r$) & $\frac{k+r}{k}$ & $k$ \\ \hline
+RAID-6($k,2$) & $\frac{k+2}{k}$ & $k$ \\ \hline
+\begin{tabular}[c]{@{}c@{}}Ap-Code\\ ($k,r,h,a$)\end{tabular} & $\frac{(k+r)h+ak}{kh}$ & $(1-a)*(k+1) + a*(h+1)$ \\ \hline
+\end{tabular}
+\end{table}
 
 \subsection{Properties of Approximate Code}
 
