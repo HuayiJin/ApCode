@@ -55,7 +55,7 @@ The recently proposed approximate storage strategy can significantly reduce the 
 
 //////////////////////
 
-Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{fig-Ap-322}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
+Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{fig-ap-41425}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
 Other $s \times t$ sectors are encoded for important data thus raise its reliability. Approximate Codes ensure that the important data can tolerate $m+s$ device failures while all data can tolerate $m$ device failures.
 When more than $s$ disks fails, Approximate Code recovers the important data and then transfer the surviving data to the upper layer for recovery. 
 
@@ -99,14 +99,6 @@ $P$     & the zone of unimportant parity sectors     \\ \hline
 \fi
 
 \subsection{Existing Erasure Codes}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.3\textwidth]{photo/chunk.pdf}
-\caption{A sample of chunks and stripes}
-\label{fig-chunk}
-\end{figure}
-
 
 Reed Solomon Code (RS code) is a kind of Maximum Distance Separable (MDS) Codes, which have the optimal storage efficiency. The encoding and decoding operations of RS code are based on Galois Field, which leads to a higher computational complexity comparing to XOR-based codes.
 
@@ -198,9 +190,9 @@ Considering the vital role the I frame plays in the video coding, we therefore d
 \multicolumn{2}{|c|}{Schemes}  & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Realibilities & Performance \\ \hline\hline
 \multirow{2}{*}{EC} & RS & high & high & medium \\ \cline{2-5} 
 \multicolumn{1}{|c|}{} & RAID 6 & medium & medium & high \\ \hline
-\multicolumn{2}{|c|}{Ap-Storage}& low & very low & high \\ \hline
+\multicolumn{2}{|c|}{Ap-Storage}& low & low & high \\ \hline
 \multirow{2}{*}{Ap-Code}& Imp & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5} 
- & unimportant &  & medium & medium \\ \hline
+ & unimportant &  & medium & high \\ \hline
 \end{tabular}
 \end{table}
 
@@ -213,32 +205,52 @@ First, existing erasure codes generally reach or exceed 3DFTS, and use more than
 To solve these problems, we propose a new erasure code called Approximation Code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}\label{ApCode}
-In this section, we introduce the design of Approximate Code and its properties through a few simple examples. For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in Section \ref{evaluation}.
+In this section, we introduce the design of Approximate Code and its properties through a few simple examples. 
+\textcolor{red}{For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in Section} \ref{evaluation}.
  
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.35\textwidth]{photo/chunk-block.pdf}
+\caption{A sample of chunks, stripes and blocks}
+\label{fig-chunk-block}
+\end{figure}
+
+
 \subsection{Design of Approximate Code}
-The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $h$ and $a$. 
-The nodes are divided into $h$ layers, and in each layer, $k$ data nodes generate $r$ local parity nodes. 
-We assume that each data node is composed of multiple chunks, while important data occupies $a$ of them.
-The global parity chunks are calculated by the important data chunks from $h$ nodes between layers so they only occupy $a \times k$ nodes of storage space.
-The construction of Approximate Code(3,2,2,1/3) can be illustrated by Figure \ref{fig-Ap-322}, where $X_i$ and $Y_i$ are data nodes, $P_{X/Yi}$ are local parity nodes and $G_i$ are global parity chunks. In this example, global parity chunks only consume 1 node of storage space.
+The construction of the Approximate Code is determined by 5 parameters $k$, $r$, $h$, $g$ and $s$. 
+
+First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block}, \emph{stripe} and \emph{layer} we use in this paper. In a system of $n$ nodes, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or on different $n$-node systems.
+For the latter situation, we specifically use \emph{layer} instead of stripe, since these two cases will result in different performance and reliability.
+
+For $s$ blocks in each chunk, we assume that important data occupies 1 block, so the ratio of unimportant data to important data is $a-1$.
+In addition, there is another $g$ global chunks, which are calculated only by the important data blocks. It should be point out that $g$ global parity chunks should be placed in $g$ different nodes and should be different from the data nodes. 
+The number of important data block is $h \times k$, and they generate $h \times g$ global parity blocks.
+
+To sum up, the number of blocks involved in the approximate code is 
+$$((k+r)s + g) \times h$$
+
+Approximate Code guarantees that for each stripe, the unimportant data can tolerate any $r$ node failures. Usually, $r$ is equal to 1 or 2, which covers most node failure scenarios. Important data are provided $r+g$ node failure tolerance, and $g$ is usually configured as $3-r$ to achieve tipical 3DFTS.
+
+The construction of Approximate Code (4,1,4,2,5) can be illustrated by Figure \ref{fig-ap-41425}, where $N_i$ are data nodes, $P_{i}$ are local parity nodes and $G_i$ are global parity chunks. 
+This example includes 22 nodes. 
+
+As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 layers with 22 nodes.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.45\textwidth]{photo/AP-kmha-v4.pdf}
-\caption{A sample of Approximate Codes $(3,2,2,1/3)$ with $h=2$ layers of devices, where each layer contains $k=3$ data devices and $r=2$ parity devices.
-The important data occupies $1/3$ of the total data node.
-Data nodes are marked as water green and the more important data is marked in darker color. Local parity nodes are marked orange and global parity chunks are marked red.}
-\label{fig-Ap-322}
+\includegraphics[width=0.35\textwidth]{photo/AP-kmha-v5.pdf}
+\caption{A sample of Approximate Codes $(4,1,4,2,5)$ with $h=4$ layers of nodes, where each layer contains $k=4$ data nodes (marked as water green) and $r=1$ parity nodes(marked as orange).
+The important data (marked as blue) occupies $1/5$ of the total data node, and generate $g=2$ global parity chunks (marked as red).}
+\label{fig-ap-41425}
 \end{figure}
 
-\subsection{Overview of the Coding Scheme}
+\iffalse
+\subsection{Encoding and Decoding Process}
 \subsubsection{Encoding Process}
-
 The encoding process of Approximate Code is simple, which can be divided into 2 parts: local and global.
-The local encoding process takes place in the layer, where data are encoded in node level. In fact, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can all be used to construct the local parity nodes for different advantages.
-The global encoding process is independent of the local encoding process and is only for important data. It is designed to encode important data across layers in the simplest way, so we use XOR to generate global parity chunks.
-The global parity chunks can be stored in another layer or other nodes. The data layer and the global parity layer can be rotated to avoid uneven distribution of data.
-
+The local encoding process takes place in the stripe, where data are encoded in node level. In fact, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can all be used to construct the local parity nodes for different advantages.
+The global encoding process is only for important data. It is designed to encode important data across stripes. There are also several ways to implement it.
 \subsubsection{Decoding Process}
 Approximate Code decodes important and unimportant data in different ways. Since the unimportant data is only encoded in local way, its decoding process is on the contrary.
 The important data is encoded in both local and global ways, so all the local and global parity chunks are used to decode it, which can be divided into 3 steps:
@@ -249,22 +261,39 @@ The important data is encoded in both local and global ways, so all the local an
 \end{enumerate}
 
 \subsection{Recovery Mode}
-
 \subsubsection{Full Recovery Mode}
 In general, our parameter settings guarantee $h<k$, so the global parity chain is shorter than the local one and has a lower reconstruct overhead.
 In addition, the global parity chunks are encoded by XOR, which results in high decoding speed.
 Therefore, important data blocks tend to recover data using global parity blocks whenever possible, which makes the Approximate Code have low overall computational overhead and reconstruction costs in \emph{full recovery mode}.
-
 \subsubsection{Approximate Recovery Mode}
-
-
+\fi
 
 \subsection{RS-based Approximate Code}
+We still use Figure \ref{fig-ap-41425} to illustrate RS-based Approximate Code $(4,1,4,2,5)$ and its properties. The local parity chunks are encoded by RS(4,1), and the important data generate another 2 global parity chunks. It is easy to find appropriate coefficient to ensure important data forms the form of RS(4,3) and tolerate any 3 chunk failure. Figure \ref{fig-ap-rs} shows the generate matrix of Layer 0 in Figure \ref{fig-ap-41425}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.45\textwidth]{photo/AP-RS-43.pdf}
+\caption{The generate matrix of RS-based Approximate Codes $(4,1,4,2,5)$, where $ID_i$ and $UD_i$ represnt the important and unimportant data in $N_i$. $G_0$ and $G_1$ are the parity blocks corresponding to important data blocks.}
+\label{fig-ap-rs}
+\end{figure}
 
 \subsection{XOR-based Approximate Code}
+We introduce the construction of XOR-based Approximate Code $(4,1,4,2,5)$ and Approximate Code $(4,1,4,2,5)$
+
+Since we mainly provide 3DFTS for important data, we prefer to construct Approximate Code with several RAID6-based codes to provide faster encoding and reconstruction speed than RS.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.4\textwidth]{photo/AP-TIP.pdf}
+\caption{The generate matrix of RS-based Approximate Codes $(4,1,4,2,5)$, where $ID_i$ and $UD_i$ represnt the important and unimportant data in $N_i$. $G_0$ and $G_1$ are the parity blocks corresponding to important data blocks.}
+\label{fig-ap-TIP}
+\end{figure}
 
 
 
+\iffalse
 \subsection{Fault Tolerance}
 In this section we give the fault tolerance of important and unimportant data in the Approximate Code.
 We first prove the correctness of our decoding process, and then use a program to 
@@ -283,7 +312,7 @@ At the same time tolerate any r+1 node loss. Only in very rare cases, r+2 nodes 
 
 First consider only the data nodes:
 Second, for the case of all nodes:
-
+\fi
 
 \iffalse
 \subsection{Reconstruct Cost}
