@@ -46,35 +46,26 @@ To address this problem, in this paper, we propose Approximate Code, which is an
 \maketitle
 
 \section{Introduction}
-Multimedia data consumes massive storage space in cloud storage systems, and this trend is exacerbated as applications demand higher resolution and frame rates. On YouTube, nearly 140,000 hours of video are played every minute and 400 hours of video are uploaded. Rapidly growing data imposes very high requirements of reliability and availability on large-scale storage systems as well as low cost.
+For typical cloud storage systems such as Windows Azure [CITE] and Amazon AWS [CITE], erasure coding is a popular technique to provide both high reliability and low monetary cost [CITE EC], where triple disk failure fault tolerant arrays (3DFTs) are widely used. Typical erasure codes can be divided into two categories, RS-based Codes [CITE] and XOR-based codes [CITE]. RS-based codes [CITE] are encoded according the Galois Field Computation in Reed Solomon Code [CITE], which allow flexible configuration and have a little higher computation cost. XOR-based codes [CITE] simplify the computation, but the scalability is a significant issue in previous literatures.
 
-Although multiple replicas can be used to ensure data availability and reliability, this method is too expensive and is only used to save hot data in practice. In contrast, the amount of cold data is far more than hot data, and erasure code (EC) schemes are ideal for storing such data. It provides lower storage overhead and write bandwidth than replication with the same fault tolerance. Currently, many cloud storage systems use erasure code to tolerate disk failures and ensure data availability, such as Windows [], Amazon AWS [] or Alibaba Cloud []. Typical erasure codes configuration use three-disk fault tolerant array (3DFTs). However, its overhead is still too high because the simultaneous damage of triple disks is relatively rare. 
+With the increasing demand on higher resolution and frame rate for video data, tremendous storage devices are highly desired in cloud storage systems, which makes data centers much bigger. On YouTube, nearly 140,000 hours of video are played every minute and 400 hours of video are uploaded [DESCRIBE AND CITE YOUTUBE]. Therefore, in this paper, we set out to answer the following question,
+In a cloud storage system, how to efficiently store the tremendous video data in 3DFTs?
 
-The recently proposed approximate storage strategy can significantly reduce the consumption of storage resources and energy. Common methods are to ensure the reliability of important data (marked as ID) while storing the unimportant data (marked as UD) on relatively unreliable media or reducing their error correction coding. Multimedia data is a typical application scenario for approximate storage because they can tolerate data corruption compared to other data. For example, video data records at least 20 frames per second, which makes it difficult for a typical user to perceive the loss of several frames. Also, some pixel errors in the image data do not affect the information of the entire picture. However, the direct application of approximate storage in a cloud storage system will result in the unimportant data being unacceptable volatile.
+To reduce the storage cost in cloud storage systems, a feasible solution is approximate storage. [DESCRIBE AND CITE APPROXIMATE STORAGE] but the data reliability cannot be guaranteed. Another solution is using disk arrays like RAID-5 or RAID-6 [CITE RAID], but the capability of fault tolerance should be sacrificed. Therefore, existing solutions cannot provide low storage cost and high reliability simultaneously.
 
-//////////////////////
+To address the above problem, in this paper, we propose Approximate Code, which is an erasure coding framework to provide comprehensive solution for video data storage in cloud systems. The key idea of Approximate Code is treating the important/unimportant data in different ways. For important data, we add additional parities to provide high capability of fault tolerance. On the other hand, the unimportant data are encoded with a minimum number of parities, which only supply the basic requirement of the recovery. When triple disks fail, the lost data can be reconstructed via a fuzzy manner.
 
-Therefore, we propose Approximate Codes for multimedia data that reduce storage overhead by reducing the parity of data that is not sensitive to errors. In the scenario shown in Figure \ref{fig-ap-41425}, the Approximate Codes are designed for systems composed of $n$ disks where $m$ disks are dedicated to coding.
-Other $s \times t$ sectors are encoded for important data thus raise its reliability. Approximate Codes ensure that the important data can tolerate $m+s$ device failures while all data can tolerate $m$ device failures.
-When more than $s$ disks fails, Approximate Code recovers the important data and then transfer the surviving data to the upper layer for recovery. 
-
-//////////////////////
-
-With proper data distribution and algorithm design, the quality loss of video or image can be controlled within an acceptable range of applications, which leads to another important task in approximating storage, distinguishing data importance.
-This work is traditionally done by experienced programmers. Fortunately, multimedia data is commonly compressed and stored in encoded formats, which results in a certain portion of such data being more important than others. For example, in the progressive transform codec (PTC) compressed image, control and run-length bits are much more important than refinement bits. Therefore, this work can be done automatically by a system tailored to specific encodings.
-
-Our work contributions include:
+We have the following contributions of this work,
 \begin{enumerate}
-\item We propose Approximation Code that reduces storage overhead and improves the reliability and availability of important data with the approximate strategy.
-\item We prove the mathematical correctness of the Approximation Code.
-\item We perform a series of experiments and show that Approximate Code performs better than the traditional method in the full recovery mode, and the data loss in the approximate mode is acceptable.
+\item We propose Approximate Code, which a cost-effective framework to store video data in cloud storage systems.
+\item Approximate Code can be implemented by combining most erasure codes in 3DFTs, such as RS, STAR Code, TIP-Code, etc.
+\item We conduct several quantitative analysis, simulations and experiments according to different layouts of various erasure codes, and the results show that Approximate Code achieves lower storage cost and faster data recovery when single disk fails.
 \end{enumerate}
 
 The rest of the paper is organized as follows. In Section \ref{RelatedWork}, we introduce related work and our motivation. 
 In Section \ref{ApCode}, the design of Approximate Code and its encoding and decoding process will be illustrated in detail. 
-Section \ref{Implementation} introduce the implementation of our design.
+Section \ref{Implementation} introduce the implementation of our design, and section \ref{as-analysis} analysis the performance of approximate video storage.
 The evaluation is presented in Section \ref{evaluation} and the conclusion of our work is in Section \ref{Conclusion}. 
-
 
 \section{Related Work and Our Motivation}\label{RelatedWork}
 This section presents background on erasure codes, related video storage methods, approximate storage, and our motivation.
@@ -195,7 +186,6 @@ Considering the vital role the I frame plays in the video coding, we therefore d
 \end{tabular}
 \end{table}
 
-
 \subsection{Our Motivation}
 Based on Table \ref{tab-AS-EC-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons. 
 
@@ -205,8 +195,12 @@ To solve these problems, we propose a new erasure code called Approximation Code
 
 \section{Approximate Code}\label{ApCode}
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. 
-\textcolor{red}{For convenience of description and without loss of generalizability, we use fewer data blocks (resulting in greater storage overhead). A more optimized parameter selection scheme for practical applications will be introduced in Section} \ref{evaluation}.
- 
+
+The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $h$ and $s$. 
+First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block} and \emph{stripe} we use in this paper. In a $n$-node system, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. 
+Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
+%Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or on different $n$-node systems.
+%We define the former situation as \emph{Situation I}, which we pay more attantion on, while the latter is defined as \emph{Situation II}.
 
 \begin{figure}[ht]
 \centering
@@ -215,54 +209,33 @@ In this section, we introduce the design of Approximate Code and its properties 
 \label{fig-chunk-block}
 \end{figure}
 
-
 \subsection{Design of Approximate Code}
-The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $h$ and $s$. 
-We use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block}, \emph{stripe} and \emph{layer} we use in this paper. In a system of $n$ nodes, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or on different $n$-node systems.
-For the latter situation, we specifically use \emph{layer} instead of stripe, since these two cases will result in different performance and reliability.
+Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-4143}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each chunk, and in \emph{Structure 2}, it occupies 1 of all $h$ data stripes.
+So, in \emph{Structure 1}, important data accounts for $1/s$ of all data, and $1/h$ in \emph{Structure 2}.
+In each stripe, $r$ chunks are local parity chunks, which is encoded by the rest $k$ data chunks in the stripe.
+In addition, there are another $3-r$ global chunks, which are calculated only by the important data blocks. It should be point out that the global parity chunks should be placed in different nodes and should be different from the data nodes. 
 
-For $s$ blocks in each chunk, we assume that important data occupies 1 block, so the ratio of important data to the whole chunk is $1/s$.
-In addition, there are another $3-r$ global chunks, which are calculated only by the important data blocks. It should be point out that the global parity chunks should be placed in several different nodes and should be different from the data nodes. 
-The number of important data block is $h \times k$, and they generate $h \times g$ global parity blocks.
+The number of important data block is $h \times k$ in \emph{Structure 1} and $s \times k$ in \emph{Structure 2}, so they generate $h \times (3-r))$ or $s \times (3-r))$ global parity blocks.
 To sum up, the number of blocks involved in the approximate code is 
-$$((k+r)s + 3-r) \times h$$
+\begin{itemize}
+    \item Structure 1: $(k+r)sh + (3-r) h$
+    \item Structure 2: $(k+r)sh + (3-r) s$
+\end{itemize}
 
 Approximate Code guarantees that for each stripe, the unimportant data can tolerate any $r$ node failures. Usually, $r$ is equal to 1 or 2, which covers most node failure scenarios, while important data are provided 3DFTs.
 
-The construction of Approximate Code (4,1,4,3) can be illustrated by Figure \ref{fig-ap-41425}, where $N_i$ are data nodes, $P_{i}$ are local parity nodes and $G_i$ are global parity chunks. 
-This example includes 22 nodes. 
+The construction of Approximate Code (4,1,4,3,\emph{Structure 1}) and Approximate (3,1,3,3,\emph{Structure 2}) can be illustrated by Figure \ref{fig-ap-4143},
 
-As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 layers with 22 nodes.
+As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 stripes with 22 nodes.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.35\textwidth]{photo/AP-kmha-v6.pdf}
-\caption{A sample of Approximate Codes $(4,1,4,3)$ with $h=4$ layers of nodes, where each layer contains $k=4$ data nodes (marked as water green) and $r=1$ parity nodes(marked as orange).
-The important data (marked as blue) occupies $1/5$ of the total data node, and generate 2 global parity chunks (marked as red).}
-\label{fig-ap-41425}
+\includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
+\caption{A sample of Approximate Codes $(4,1,4,3)$ in \emph{Structure 1}, and Approximate Code $(3,1,3,3)$ in \emph{Structure 2}.
+Data chunks are marked as $N_i$, important data are marked as water green, local parity chunks are marked as orange and global parity chunks are marked as red.
+}
+\label{fig-ap-4143}
 \end{figure}
-
-\iffalse
-\subsection{Encoding and Decoding Process}
-\subsubsection{Encoding Process}
-The encoding process of Approximate Code is simple, which can be divided into 2 parts: local and global.
-The local encoding process takes place in the stripe, where data are encoded in node level. In fact, EC methods such as RS-based, XOR-based, MSR, MDS or PMDS codes can all be used to construct the local parity nodes for different advantages.
-The global encoding process is only for important data. It is designed to encode important data across stripes. There are also several ways to implement it.
-\subsubsection{Decoding Process}
-Approximate Code decodes important and unimportant data in different ways. Since the unimportant data is only encoded in local way, its decoding process is on the contrary.
-The important data is encoded in both local and global ways, so all the local and global parity chunks are used to decode it, which can be divided into 3 steps:
-\begin{enumerate}
-\item Inter-layer check, reconstruct data using global parity chunks until it exceeds fault tolerance.
-\item In-layer check, reconstruct data using local parity chunks until it exceeds fault tolerance.
-\item Inter-layer check again, reconstruct using the global parity chunks.
-\end{enumerate}
-\subsection{Recovery Mode}
-\subsubsection{Full Recovery Mode}
-In general, our parameter settings guarantee $h<k$, so the global parity chain is shorter than the local one and has a lower reconstruct overhead.
-In addition, the global parity chunks are encoded by XOR, which results in high decoding speed.
-Therefore, important data blocks tend to recover data using global parity blocks whenever possible, which makes the Approximate Code have low overall computational overhead and reconstruction costs in \emph{full recovery mode}.
-\subsubsection{Approximate Recovery Mode}
-\fi
 
 \begin{figure}[htb]
 \centering
@@ -272,7 +245,7 @@ Therefore, important data blocks tend to recover data using global parity blocks
 \end{figure}
 
 \subsection{RS-based Approximate Code}
-We still use Figure \ref{fig-ap-41425} to illustrate RS-based Approximate Code $(4,1,4,3)$ and its properties. The local parity chunks are encoded by RS(4,1), and the important data generate another 2 global parity chunks. It is easy to find appropriate coefficient to ensure important data forms the form of RS(4,3) and tolerate any 3 chunk failure. Figure \ref{fig-ap-rs} shows the generate matrix of Layer 0 in Figure \ref{fig-ap-41425}.
+We still use Figure \ref{fig-ap-4143} to illustrate RS-based Approximate Code $(4,1,4,3)$ and its properties. The local parity chunks are encoded by RS(4,1), and the important data generate another 2 global parity chunks. It is easy to find appropriate coefficient to ensure important data forms the form of RS(4,3) and tolerate any 3 chunk failure. Figure \ref{fig-ap-rs} shows the generate matrix of stripe 0 in Figure \ref{fig-ap-4143}.
 
 \subsection{XOR-based Approximate Code}
 Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several RAID6-based codes to provide faster encoding and reconstruction speed than RS. This section introduce tipical cases of the construction of XOR-based Approximate Code ($5,1,6,6$) and $(4,2,4,4)$.
@@ -285,7 +258,7 @@ Since we mainly provide 3DFTs for important data, we prefer to construct Approxi
 \label{fig-ap-TIP}
 \end{figure}
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6,6$) based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each layer, local parity blocks provide horizontal XOR parity, and between layers, global parity provide diagonal parity and anti-diagonal parity. 
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6,6$) based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -309,7 +282,7 @@ Since the encoding process of important data blocks can be seen as RAID5 plus TI
 
 \subsubsection{EVENODD-STAR Approximate Code}
 Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($4,2,4,4$) based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
-EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in Layer 0, while unimportant data blocks occupy the rest layers. 
+EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in stripe 0, while unimportant data blocks occupy the rest stripes. 
 Because the STAR code is constructed just by adding a reverse check chain to the EVENODD code. In this case, we design a global check block to store this check chain, so 3DFTs can be guaranteed.
 
 \begin{figure}[h]
@@ -318,29 +291,6 @@ Because the STAR code is constructed just by adding a reverse check chain to the
 \caption{The XOR-based Approximate Code ($4,2,4,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
 \label{fig-ap-STAR}
 \end{figure}
-
-\iffalse
-\subsection{Fault Tolerance}
-In this section we give the fault tolerance of important and unimportant data in the Approximate Code.
-We first prove the correctness of our decoding process, and then use a program to 
-iterate through all the cases of node failures. Finally, we give the data recovery capability of all cases.
-For unimportant data, it only has local parity nodes, so its fault tolerance in Approximate Code($k,r,h,a$) is the same as RS($k,r$), which is any $r$ node failures in $k+r$ nodes in each layer.
-
-For important data, We consider the \emph{full recovery mode} and the \emph{approximate recovery mode} separately. When the number of nodes lost per layer does not exceed $r$, the Approximate Code completely recovers all data in \emph{full recovery mode}. If the damage is more severe, the Approximate Code enters the \emph{approximate recovery mode}.
-We still take the Approximate Code ($3, 2, 2, 1/3$) as an example, and discuss the fault tolerance of important and mionor data separately.
-Important data nodes can tolerate the loss of any 2r+1 data nodes
-At the same time tolerate any r+1 node loss. Only in very rare cases, r+2 nodes are damaged in this way, that is, a data node whose local check node and global check node are damaged at the same time.
-First consider only the data nodes:
-Second, for the case of all nodes:
-\subsection{Reconstruct Cost}
-In this section, we introduce the recovery overhead for several common failure cases of Approximate Code. The reconstruct cost is defined as the 
-\subsubsection{Single node failure}
-When any one data node fails, the reconstruction cost of unimportant data is $k$ read and 1 write, while important data has the cost of $h$ read and 1 write. So the total amount of data that needs to be transferred is 
-$$ (1-a)*(k+1) + a*(h+1) $$.
-
-For example, when node $X_0$ is lost in case of Approximate Codes $(3,2,2,1/3)$. The amount of data required to rebuild a node is:$\frac{2}{3}*4+\frac{1}{3}*3=\frac{11}{3}$
-\fi
-
 
 \begin{table}[ht]
 \centering 
@@ -374,146 +324,89 @@ We analyze the nature of the Approximate Code from the following aspects, and th
 \label{fig-implementation}
 \end{figure}
 
-Compared with the traditional scheme that does not consider the meaning of the upper layer data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate layer between the upper layer application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage layer, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
+Compared with the traditional scheme that does not consider the meaning of the upper stripe data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate stripe between the upper stripe application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage stripe, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
 
-\subsection{Data Segmentation and Distribution Process}
-The identification of data importance can be specified by the upper application as well as automatically determined by the approximate storage layer. We focus on the latter and take video file as an example to introduce our method of automatically distinguishing importance.
+\subsection{Data Segmentation and Distribution module}
+The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important parts) and other data. (unimportant part).
 
-For video data encoded by H.264 or similar format, we define I frames as important data, while P frames and B frames as unimportant data based on the analysis in section \ref{video storage}.
-\textcolor{orange}{In practical, video data is rarely stored in the original form of H.264 streams (``.264'' files), but is usually storaged in an file such as ``.mp4'' files containing information such as audio. We transcode video files into raw video streams and other data, and we define these non-video data as important because they contain information that the video can't provide and only take up a small amount of space. The feasibility of this definition will be confirmed in} \ref{evaluation}.
+The data distribution module distributes important data and unimportant data in different blocks and records the location. This location information is also defined as important data. This module is also responsible for analyzing the proportion of important data and unimportant data in the data stream to select the most appropriate coding parameter configuration to ensure fault tolerance and high storage efficiency of important data.
 
-\subsection{Data Distribution and Reorganization}
-Fortunately, in an H.264 stream, each GOP begins with an I frame followed by a series of P and B frames. Therefore, we store data in units of GOPs. Our main purpose is to store I frames and other frames separately. For non-video data, we distribute it into multiple GOPs and treat it as a special part of the I frame. In the following description, we no longer consider such data especially and simply refer to them as I-frames.
-We define $\omega$ as the the important data ratio, which is the size of I-frames divided by the entire GOP size. We also define $\omega_{act}$ as the actual important rate the code can provide by equation \ref{eq-ome-act}.
-\begin{equation}\label{eq-ome-act}
-    \omega_{act}=\frac{D_I}{D_I+D_M}=\frac{(n-m) \times t}{(n-m) \times r-s \times t}
-\end{equation}
+\subsection{Approximate Code module}
+The Approximate Code implements local and global encoding of $k*h$ data chunks and is responsible for reconstructing the wrong data chunk. When no more than $r$ chunks are corrupted, Approximation Code uses the local check block to recover all data, both important and minor. When there is no more than 3 loss of important data,
+2 forms
+Form 1: Important data and unimportant data are distributed at the same node.
+When there are no more than r blocks lost in a single stripe, the local check block completely recovers all data.
+When more than r but no more than 3 blocks are lost in a single stripe, the global check block recovers all important data, and the surviving unimportant data block and important data blocks are sent to the video recovery module.
+Form 2: The important data is distributed in a stripe, and the minor number is distributed on H-1 stripes. . .
+Important data stripe loses no more than 3 blocks and is fully recovered.
+The unimportant data stripe loses no more than r blocks and is fully recovered.
+The unimportant data stripe loses more than r, and the video is restored.
+The approximate code module is also responsible for allocating data blocks to ensure that the chunks of each stripe are distributed to different nodes, while ensuring that the global check chunk and the data chunk are not on one node.
 
-  Algorithm \ref{alg-data-dist} and \ref{alg-data-reor} shows the data distribution and reorganization methods.
+\subsection{Data Fuzzification and Video Recovery}
+In the approximate recovery mode, the recoverable and remaining data is passed to this module, and the blurred video is recovered through various video recovery techniques, and the upper application is notified. Through the content of the second chapter, we can approximate the data recovery. . .
 
-\begin{algorithm}[htb] 
-\caption{Data Distribution Algorithm} 
-\label{alg-data-dist} 
-\begin{algorithmic}[1] 
+\section{Approximate Storage Analysis}\label{as-analysis}
 
-\Require  $n$, $m$ and $s$ from the settings of approximate storage layer. Get the type of erasure code.
-\Ensure $D_I$, $D_M$, $Q$ and $G$.
-\While {true}
-\State Divide data into several segments (several GOPs for video data);
-\State Calculate $\omega$ of each GOP, and mark the highest one as $\omega_{max}$;
-\State Adjust $t$ to find the closest $\omega_{act}$ to $\omega_{max}$;
-\Repeat 
-\State Divide each GOP into two parts: $\omega_{act}$ and $1-\omega_{act}$;
-\State Store the former in $D_I$, the latter in $D_M$;
-\Until All GOPs are classified;
-\EndWhile
-
-\end{algorithmic} 
-\end{algorithm}
-
-
-\begin{algorithm}[htb] 
-\caption{Data Reorganization Algorithm} 
-\label{alg-data-reor} 
-\begin{algorithmic}[1] 
-\Require $D_I$ and $D_M$;
-\Ensure A stripe of video data;
-\State Find the parameter $(n,m,r,s,t)$ and calculate $\omega_{act}$.
-\Repeat
-\State Read an I frame from $D_I$ and record its length as $l$.
-\State Read $l \times \frac{1-\omega_{act}}{\omega_{act}}$ in $D_M$ and combine two parts.
-\Until All blocks are read.
-\end{algorithmic} 
-\end{algorithm}
-
-The data distribution scheme is shown in the figure \ref{Data-distribution-v2}. We present $\omega_i$ as the $\omega$ of Data(i), and $\omega_{max} = \omega_2$.
-For example, Data 3 is represented by blue, and its key segment (10\%) and part of unimportant segment (10\%) are settled in $D_I$.
-The main idea of our data distribution method is to guarantee that each GOP has the same proportion of storage in $D_I$ and $D_M$. This method improves flexibility because it is not necessary to maintain a map that marks the location of each GOP, which makes it is easy to add or delete data at any time. Meanwhile, the method is ideal for streaming video data generated in real time by applications such as monitoring.
-
-\begin{figure}[htb]
-\centering
-\includegraphics[width=0.32 \textwidth]{photo/Data-distribution-v2.pdf}
-\caption{A sample of data distribution method, where the gray block in the upper right corner is the $Q$ area. Here for each data segment, $\omega_1=15\%$, $\omega_2=20\%$ and $\omega_3=10\%$, so the $\omega_{max}=20\%$.}
-\label{Data-distribution-v2}
-\end{figure}
-
-In addition, our approach can be applied to a variety of other data types. In fact, encoded multimedia data mostly has the property of coexisting important data and non-essential data, such as PTC encoding used in image storage[][].
-
-\section{Experimental Setup}
-
-\subsection{Evaluation methodology}
-In our evaluation, we first compare the Approximate Code with the RS code and some XOR-based codes to demonstrate the performance benefits of our solution. Since 3DFTs is a typical erasure code configuration, we use it as a baseline and set the minimum fault tolerance of important data to 3 ($ m + s \geqslant 3 $). We will then demonstrate the quality loss of multimedia data under the traditional and approximate recovery models of severe disk failure to assess the benefits of our approximate storage scheme. We use mathematical analysis and experiments to prove the effectiveness of the Approximate Code.
-
-
-
-\subsubsection{Erasure Codes in Our Comparisons}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
+\begin{figure*}
+\subfigure{
+    \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-4-disks.eps}
 }
+\subfigure{
+    \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-5-disks.eps}
+}
+\subfigure{
+    \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-6-disks.eps}
+}
+\subfigure{
+    \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-8-disks.eps}
+}
+\caption{Comparison of the data retention  between approximate storage and common methods when node is unrecoverable.}
+\end{figure*}
 
-\subsubsection{Platforms and Configurations}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
 
-\subsubsection{Metrics}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
-\subsubsection{Parameters and Assumption in Our Evaluation}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
+In this chapter, we mainly discuss the number of video frames saved in Mode 1 when the unimportant data corruption is greater than the fault tolerance of the local calibration and the important data can be fully recovered.
+This proves that if the video data is not distinguished, in a typical
+This compares the ability of the approximation code to secure video data.
+
+Indicator: number of frames restored
+Test situation:
+Test set:
+
+Our experiments analyzed a series of videos. We define that when the I frame of the video is corrupted, the entire GOP is marked as unavailable (lost).
+Since the approximation code stores the I frame as important data, the integrity of the I frame is always guaranteed in our scheme.
+
+The experimental results are shown in Figure x. The approximate storage scheme can guarantee the number of frames of the video close to the theoretical limit.
+
+
+Our experiments prove that if data is stored indiscriminately, the loss of important data will seriously affect the security of all data, and our scheme will control the data loss near the theoretical limit, ensuring video recovery and fuzzification. feasibility.
 
 \section{Evaluation}\label{evaluation}
-This section introduces a series of experiments we have conducted to verify the efficiendy of the Approximate Code.
 
-\begin{table*}[ht]
-\centering
-\caption{Summary on Various Erasure Codes}
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-Name & Fault Tolerance & Storage Overhead & Scalibility & Recovery Cost & \begin{tabular}[c]{@{}c@{}}Computational\\ Complexity\end{tabular} \\ \hline \hline
-RS($k,m$) Code & any $m$ disks & $m$ disks & high & high & high \\ \hline
-MSR($k,m$) Code & any $m$ disks & $m$ disks & medium & low & very high \\ \hline
-Raid 6 & 2 & 2 & low & high & low \\ \hline
-SD Code($m,s$) & any $m$ disks and $s$ sectors & $m$ disks and $s$ sectors & low & low & medium \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (Important Data)\end{tabular} & any $m+s$ disks & $m$ disks and $s$ sectors & high & high & medium \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate Code($n,m,s,t$)\\ (unimportant Data)\end{tabular} & any $m$ disks & $m$ disks and $s$ sectors & high & high & high \\ \hline
-\end{tabular}
-\end{table*}
-
-\begin{table}[htbp]
-\begin{tabular}{|c|c|c|c|c|}
-\hline
-\begin{tabular}[c]{@{}c@{}}Code\\ Config\end{tabular} & \begin{tabular}[c]{@{}c@{}}Storage \\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (Imp)\end{tabular} & \begin{tabular}[c]{@{}c@{}}FT\\ (unimportant)\end{tabular} & \begin{tabular}[c]{@{}c@{}}Important \\ Rate\end{tabular} \\ \hline
-(6,2,4,1,2) & 1.600 & 3 & 2 & 0.200 \\ \hline
-(8,2,6,1,1) & 1.371 & 3 & 2 & 0.143 \\ \hline
-(10,2,8,1,1) & 1.270 & 3 & 2 & 0.111 \\ \hline
-(11,2,9,1,1) & 1.238 & 3 & 2 & 0.100 \\ \hline
-(11,3,7,1,1) & 1.400 & 4 & 3 & 0.127 \\ \hline
-(13,3,10,1,2) & 1.327 & 4 & 3 & 0.184 \\ \hline
-(8,2,6,1,2) & 1.412 & 3 & 2 & 0.294 \\ \hline
-(8,2,4,1,2) & 1.455 & 3 & 2 & 0.455 \\ \hline
-(10,2,6,2,2) & 1.364 & 4 & 2 & 0.273 \\ \hline
-(11,3,8,2,2) & 1.467 & 5 & 3 & 0.200 \\ \hline
-\end{tabular}
-\end{table}
+Our experiment is mainly divided into two parts: erasure code and approximate storage analysis. The former mainly analyzes the performance of the approximate code and compares our scheme with the typical erasure code configuration; the latter mainly analyzes the data protection capability of the approximate code and other schemes in the case of data loss.
 
 
-\subsection{Results}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
 
-\subsection{Analysis}
-\textcolor{orange}{Illustrate why Approximate Code achieve high reliability with low cost}
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
+In this section, we use mathematical analysis and a series of experiments to demonstrate the performance of the approximate code.
+Evaluation method: We choose RS code, TIP-code, EVENODD, STAR, RAID5 for comparison.
+
+Mathematical analysis: We use the storage efficiency, fault tolerance and reconstruction cost defined above as a measure.
+
+In short, for each stripe, the unimportant data can tolerate any r node failures, while important data can tolerate any three node failures. However, the actual scene will be more complicated:
+For mode one. . .
+
+
+For fault tolerance, Mode 1 and Mode 2 will be different. Not only that, Mode 1 provides minimal fault tolerance, while Mode 2 provides near-code maximum fault tolerance.
+
+Obviously, for mode one, the approximate code can tolerate any r node failures, and the fault tolerance of important data is 3. For mode two, the approximate code provides an arbitrary level of r-node failure, and only if
+
+For mode two, if all chunks are distributed across different nodes, the approximate code provides the greatest degree of reliability. That is,
+
+
+
+We calculated the recovery efficiency and reconstruction cost of the approximate code in the case of single-node, two-node and three-node failures. Since the approximate code can be constructed in many forms, we mainly focus on it. . . . . .
+
+
 
 
 \section{Conclusion}\label{Conclusion}
