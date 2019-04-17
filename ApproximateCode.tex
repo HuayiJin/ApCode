@@ -64,7 +64,7 @@ We have the following contributions of this work,
 
 The rest of the paper is organized as follows. In Section \ref{RelatedWork}, we introduce related work and our motivation. 
 In Section \ref{ApCode}, the design of Approximate Code and its encoding and decoding process will be illustrated in detail. 
-Section \ref{Implementation} introduce the implementation of our design, and section \ref{as-analysis} analysis the performance of approximate video storage.
+Section \ref{Implementation} introduce the implementation of our design, and section \ref{ap-recovery} analysis the performance of approximate video storage.
 The evaluation is presented in Section \ref{evaluation} and the conclusion of our work is in Section \ref{Conclusion}. 
 
 \section{Related Work and Our Motivation}\label{RelatedWork}
@@ -196,7 +196,7 @@ To solve these problems, we propose a new erasure code called Approximation Code
 \section{Approximate Code}\label{ApCode}
 In this section, we introduce the design of Approximate Code and its properties through a few simple examples. 
 
-The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $h$ and $s$. 
+The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
 First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block} and \emph{stripe} we use in this paper. In a $n$-node system, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. 
 Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
 %Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or on different $n$-node systems.
@@ -210,55 +210,60 @@ Approximate Code are designed for $h$ stripes, where each stripe is in the same 
 \end{figure}
 
 \subsection{Design of Approximate Code}
-Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-4143}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each chunk, and in \emph{Structure 2}, it occupies 1 of all $h$ data stripes.
-So, in \emph{Structure 1}, important data accounts for $1/s$ of all data, and $1/h$ in \emph{Structure 2}.
+Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-414}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each chunk, and in \emph{Structure 2}, it occupies 1 of all $h$ data stripes.
+We define that $h=s$, so in \emph{Structure 1} and \emph{Structure 2},important data accounts for $1/h$ of all data.
+
 In each stripe, $r$ chunks are local parity chunks, which is encoded by the rest $k$ data chunks in the stripe.
 In addition, there are another $3-r$ global chunks, which are calculated only by the important data blocks. It should be point out that the global parity chunks should be placed in different nodes and should be different from the data nodes. 
 
-The number of important data block is $h \times k$ in \emph{Structure 1} and $s \times k$ in \emph{Structure 2}, so they generate $h \times (3-r))$ or $s \times (3-r))$ global parity blocks.
+The number of important data blocks is $h \times k$, and they generate $h \times (3-r)$ global parity blocks.
 To sum up, the number of blocks involved in the approximate code is 
-\begin{itemize}
-    \item Structure 1: $(k+r)sh + (3-r) h$
-    \item Structure 2: $(k+r)sh + (3-r) s$
-\end{itemize}
+$$(k+r)h^2 + (3-r) h$$
+
 
 Approximate Code guarantees that for each stripe, the unimportant data can tolerate any $r$ node failures. Usually, $r$ is equal to 1 or 2, which covers most node failure scenarios, while important data are provided 3DFTs.
 
-The construction of Approximate Code (4,1,4,3,\emph{Structure 1}) and Approximate (3,1,3,3,\emph{Structure 2}) can be illustrated by Figure \ref{fig-ap-4143},
+The construction of Approximate Code (4,1,4, \emph{Structure 1}) and Approximate (3,1,3, \emph{Structure 2}) can be illustrated by Figure \ref{fig-ap-414},
 
-As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 stripes with 22 nodes.
+%As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 stripes with 22 nodes.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
-\caption{A sample of Approximate Codes $(4,1,4,3)$ in \emph{Structure 1}, and Approximate Code $(3,1,3,3)$ in \emph{Structure 2}.
+\caption{A sample of Approximate Codes $(4,1,4)$ in \emph{Structure 1}, and Approximate Code $(3,1,3)$ in \emph{Structure 2}.
 Data chunks are marked as $N_i$, important data are marked as water green, local parity chunks are marked as orange and global parity chunks are marked as red.
 }
-\label{fig-ap-4143}
+\label{fig-ap-414}
 \end{figure}
 
 \begin{figure}[htb]
 \centering
 \includegraphics[width=0.45\textwidth]{photo/AP-RS-43.pdf}
-\caption{The generate matrix of RS-based Approximate Codes $(4,1,4,3)$, where $ID_i$ and $UD_i$ represent the important and unimportant data in $N_i$. $G_0$ and $G_1$ are the parity blocks corresponding to important data blocks.}
+\caption{The generate matrix of RS-based Approximate Codes $(4,1,4)$, where $ID_i$ and $UD_i$ represent the important and unimportant data in $N_i$. $G_0$ and $G_1$ are the parity blocks corresponding to important data blocks.}
 \label{fig-ap-rs}
 \end{figure}
 
 \subsection{RS-based Approximate Code}
-We still use Figure \ref{fig-ap-4143} to illustrate RS-based Approximate Code $(4,1,4,3)$ and its properties. The local parity chunks are encoded by RS(4,1), and the important data generate another 2 global parity chunks. It is easy to find appropriate coefficient to ensure important data forms the form of RS(4,3) and tolerate any 3 chunk failure. Figure \ref{fig-ap-rs} shows the generate matrix of stripe 0 in Figure \ref{fig-ap-4143}.
+The construction of the Approximate Code based on RS is simple. In \emph{Structure 1}, the encoding unit is block. A horizontal RS parity is performed on the corresponding block in each chunk to generate a local parity block. At the same time, the important data blocks is horizontally verified by RS and generate multiple global check blocks.
+
+In \emph{Structure 2}, the encoding unit is chunk.
+We perform horizontal RS parity in each stripe to generate local parity chunks. The global parity chunk is generated only by the important data stripe.
+
+Figure \ref{fig-ap-rs} is the RS generation matrix with $k=4$ and $r=1$.
+It shows that to ensure that the coefficients of the local and the global parity are linearly independent is easy. If necessary, Approximation Code can easily achieve higher reliability guarantees based on RS, but in most cases this is excessive, so we will not discuss it here.
 
 \subsection{XOR-based Approximate Code}
-Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several RAID6-based codes to provide faster encoding and reconstruction speed than RS. This section introduce tipical cases of the construction of XOR-based Approximate Code ($5,1,6,6$) and $(4,2,4,4)$.
+Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several RAID6-based codes to provide faster encoding and reconstruction speed than RS. This section introduce tipical cases of the construction of XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}) and ($4,2,4$, \emph{Structure 2}).
 
 \subsubsection{RAID5-TIP Approximate Code}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.35\textwidth]{photo/AP-TIP-v2.pdf}
-\caption{The XOR-based Approximate Code ($5,1,6,6$), constructed based on RAID5 and TIP-code.}
+\caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
 \label{fig-ap-TIP}
 \end{figure}
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6,6$) based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -281,9 +286,9 @@ Since the encoding process of important data blocks can be seen as RAID5 plus TI
 \end{figure}
 
 \subsubsection{EVENODD-STAR Approximate Code}
-Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($4,2,4,4$) based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
+Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($4,2,4$) in \emph{Structure 2} based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
 EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in stripe 0, while unimportant data blocks occupy the rest stripes. 
-Because the STAR code is constructed just by adding a reverse check chain to the EVENODD code. In this case, we design a global check block to store this check chain, so 3DFTs can be guaranteed.
+Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. In this case, we design a global parity block to store this parity chain, so 3DFTs can be guaranteed.
 
 \begin{figure}[h]
 \centering
@@ -292,29 +297,31 @@ Because the STAR code is constructed just by adding a reverse check chain to the
 \label{fig-ap-STAR}
 \end{figure}
 
-\begin{table}[ht]
-\centering 
-\caption{Comparison of storage overhead and fault tolerance between Approximate Code, RS and several XOR-based codes.}\label{tab-AS-RS-AP}
-\begin{tabular}{|c|c|c|}
-\hline
-EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Fault Tolerance \\ \hline
-RS($k,r$) & $(k+r)/k$ & $r$ \\ \hline
-RAID-5($k,1$) & $(k+1)/k$ & 1 \\ \hline
-EVENODD($k,2$) & $(k+2)/k$ & 2 \\ \hline
-TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 \\ \hline
-\begin{tabular}[c]{@{}c@{}}Approximate Code\\ ($k,r,h,s$)\end{tabular} & $\frac {(k+r)s+3-r}{k*s}$ & r to 3 \\ \hline
-\end{tabular}
-\end{table}
+\subsection{Case Study}
+We introduce
 
 \subsection{Properties of Approximate Code}
 
 We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table \ref{tab-AS-RS-AP}.
 \begin{itemize}
-    \item Low cost. Approximate code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
+    \item Low Storage Overhead: Approximate Code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
+    \item Low Write Overhead: Approximate Code only needs to write $r*h$ local parity blocks and only $3-r$ global parity chunks, while tipical 3DFTs EC methods should write $3*h$ parity chunks.
     \item High reliability for important data. The Approximate Code guarantees 3DFTs for important data.
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two.
 \end{itemize}
 
+\begin{table}[ht]
+\centering 
+\caption{Comparison of storage overhead and fault tolerance between Ap-Code (short for Approximate Code), RS and several XOR-based codes.}\label{tab-AS-RS-AP}
+\begin{tabular}{|c|c|c|c|}
+\hline
+EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}Fault \\ Tolerance\end{tabular} & \begin{tabular}[c]{@{}c@{}}Write\\ Overhead\end{tabular} \\ \hline
+RS($k,r$) & $(k+r)/k$ & $r$ & r \\ \hline
+EVENODD($k,2$) & $(k+2)/k$ & 2 & 2 \\ \hline
+TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 & 3 \\ \hline
+\begin{tabular}[c]{@{}c@{}}Ap-Code\\ ($k,r,h$)\end{tabular} & $\frac {(k+r)h+3-r}{k*h}$ & r to 3 & $r+\frac{3-r}{h}$ \\ \hline
+\end{tabular}
+\end{table}
 
 \section{Implementation}\label{Implementation}
 \begin{figure}[htb]
@@ -327,7 +334,7 @@ We analyze the nature of the Approximate Code from the following aspects, and th
 Compared with the traditional scheme that does not consider the meaning of the upper stripe data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate stripe between the upper stripe application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage stripe, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
 
 \subsection{Data Segmentation and Distribution module}
-The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important parts) and other data. (unimportant part).
+The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important part) and other data. (unimportant part).
 
 The data distribution module distributes important data and unimportant data in different blocks and records the location. This location information is also defined as important data. This module is also responsible for analyzing the proportion of important data and unimportant data in the data stream to select the most appropriate coding parameter configuration to ensure fault tolerance and high storage efficiency of important data.
 
@@ -346,7 +353,7 @@ The approximate code module is also responsible for allocating data blocks to en
 \subsection{Data Fuzzification and Video Recovery}
 In the approximate recovery mode, the recoverable and remaining data is passed to this module, and the blurred video is recovered through various video recovery techniques, and the upper application is notified. Through the content of the second chapter, we can approximate the data recovery. . .
 
-\section{Approximate Storage Analysis}\label{as-analysis}
+\section{Approximate Recovery}\label{ap-recovery}
 
 \begin{figure*}
 \subfigure{
@@ -382,6 +389,17 @@ The experimental results are shown in Figure x. The approximate storage scheme c
 Our experiments prove that if data is stored indiscriminately, the loss of important data will seriously affect the security of all data, and our scheme will control the data loss near the theoretical limit, ensuring video recovery and fuzzification. feasibility.
 
 \section{Evaluation}\label{evaluation}
+
+Storage overhead
+
+Encoding and decoding performance
+
+write performance
+
+recovery Overhead
+
+Recovery Frame
+
 
 Our experiment is mainly divided into two parts: erasure code and approximate storage analysis. The former mainly analyzes the performance of the approximate code and compares our scheme with the typical erasure code configuration; the latter mainly analyzes the data protection capability of the approximate code and other schemes in the case of data loss.
 
