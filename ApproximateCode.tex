@@ -198,8 +198,8 @@ In this section, we introduce the design of Approximate Code and its properties 
 
 The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
 First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block} and \emph{stripe} we use in this paper. In a $n$-node system, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. 
-%Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
-Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or in different $n$-node systems.
+Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
+%Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or in different $n$-node systems, which is controlled by the distributed file system.
 %We define the former situation as \emph{Situation I}, which we pay more attantion on, while the latter is defined as \emph{Situation II}.
 
 \begin{figure}[ht]
@@ -255,15 +255,11 @@ It shows that to ensure that the coefficients of the local and the global parity
 \subsection{XOR-based Approximate Code}
 Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several RAID6-based codes to provide faster encoding and reconstruction speed than RS. This section introduce tipical cases of the construction of XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}) and ($4,2,4$, \emph{Structure 2}).
 
-\subsubsection{RAID5-TIP Approximate Code}
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.35\textwidth]{photo/AP-TIP-v2.pdf}
-\caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
-\label{fig-ap-TIP}
-\end{figure}
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
+\subsubsection{RAID5-TIP Approximate Code}
+
+
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -273,6 +269,13 @@ The local (horizontal) parity elements are calculated by the following encoding 
 
 When generating global parity blocks, the important data block, the local parity block, and the global parity block should be arranged as the encoding form of TIP-code. Figure \ref{fig-TIP} shows the coding method of diagonal and anti-diagonal parity blocks.
 Since the encoding process of important data blocks can be seen as RAID5 plus TIP-code, it is obvious that they achieve 3DFTs.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.3\textwidth]{photo/AP-TIP-v2.pdf}
+\caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
+\label{fig-ap-TIP}
+\end{figure}
 
 \begin{figure}[h]
 \subfigure[Diagonal parity $GP_0$ to $GP_5$, (e.g., $GP_0=ID_{0,0} \oplus ID_{1,4} \oplus ID_{2,3} \oplus ID_{4,2} \oplus ID_{5,1}$]{
@@ -286,30 +289,52 @@ Since the encoding process of important data blocks can be seen as RAID5 plus TI
 \end{figure}
 
 \subsubsection{EVENODD-STAR Approximate Code}
-Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($4,2,4$) in \emph{Structure 2} based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
+Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($5,2,4$) in \emph{Structure 2} based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
 EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in stripe 0, while unimportant data blocks occupy the rest stripes. 
-Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. In this case, we design a global parity block to store this parity chain, so 3DFTs can be guaranteed.
+$LP_{i,0}$ to $LP_{i,3}$ consist the horizontal parity chunks and $LP_{i,4}$ to $LP_{i,7}$ consist diagonal parity chunks for stripe $i$. So the form of every stripe fit the construction of EVENODD. Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. 
+The $GP$ is the anti-diagonal parity chunk and guarantee important data chunks form the construction method of STAR, which ensures the 3DFTs.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.35\textwidth]{photo/AP-EVEN-star-v2.pdf}
-\caption{The XOR-based Approximate Code ($4,2,4,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
+\caption{The XOR-based Approximate Code ($5,2,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
 \label{fig-ap-STAR}
 \end{figure}
 
-\subsection{Decoding Case Study}
+\begin{figure}[ht]
+\subfigure[]{
+    \includegraphics[width = 0.3 \linewidth]{photo/star-hori.pdf}
+}
+\subfigure{
+    \includegraphics[width = 0.3 \linewidth]{photo/star-diag.pdf}
+}
+\subfigure{
+    \includegraphics[width = 0.3 \linewidth]{photo/star-anti.pdf}
+}
+\caption{EVENODD only consist horizontal and diagonaol parity, while STAR add the anti-diagonal parity chunk based on EVENODD and can tolerate 3 device failures.}\label{fig-star}
+\end{figure}
+
+\subsection{Case Study}
 This section describe the decoding methods in different cases of node failure based on \emph{Structure 1} and \emph{Structure 2}.
 
 \subsubsection{Reconstruction cases in Structure 1}
 Under \emph{Structure 1}, important data and unimportant data are distributed in the same chunks, so they suffer the same risk of device failures. 
 When $r$ or less nodes fail, all the data can be reconstructed by local parity.
-When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, where the important data are recovered by global parity chunks and the damaged video data will be processed by the video recovery and fuzzy algorithm.
+When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, in which the important data are recovered by global parity chunks and the damaged video data will be processed by the video recovery and fuzzy algorithm.
 
 \subsubsection{Reconstruction cases in Structure 2}
 Under \emph{Structure 2}, we consider important and unimportant data chunks separately.
 
+For node level failure, the fault tolerance of \emph{Structure 2} is exactly as \emph{Structure 1},When it comes to chunk level failures, \emph{Structure 2} can tolerate more unimportant data chunk failures than \emph{Structure 1}. The parity chain of important data does not pass through the unimportant data, so the damage of these chunks does not affect the recovery of important data.
 
-\subsection{Properties of Approximate Code}
+///////////////////////
+Under the random probability model of chunks, the probability of failure of the Approximate Code under 4 chunk damage is
+\begin{equation}
+    P_{failure} = \frac{C_{k+3}^4}{C_{(k+r)h+3-r}^4}
+\end{equation}
+which is the 4 chunk failure situation in $k$ important data chunks and 3 important parity chunks. For example, the failure situation of Approximate Code ($4,1,4$, \emph{Structure 2}) probability is 0.478\%.
+
+\subsection{Properties of Approximate Code}\label{properties}
 
 We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table \ref{tab-AS-RS-AP}.
 \begin{itemize}
@@ -348,23 +373,16 @@ The data segmentation module splits the video file stream into multiple data seg
 The data distribution module distributes important data and unimportant data in different blocks and records the location. This location information is also defined as important data. This module is also responsible for analyzing the proportion of important data and unimportant data in the data stream to select the most appropriate coding parameter configuration to ensure fault tolerance and high storage efficiency of important data.
 
 \subsection{Approximate Code module}
-The Approximate Code implements local and global encoding of $k*h$ data chunks and is responsible for reconstructing the wrong data chunk. When no more than $r$ chunks are corrupted, Approximation Code uses the local check block to recover all data, both important and minor. When there is no more than 3 loss of important data,
-2 forms
-Form 1: Important data and unimportant data are distributed at the same node.
-When there are no more than r blocks lost in a single stripe, the local check block completely recovers all data.
-When more than r but no more than 3 blocks are lost in a single stripe, the global check block recovers all important data, and the surviving unimportant data block and important data blocks are sent to the video recovery module.
-Form 2: The important data is distributed in a stripe, and the minor number is distributed on H-1 stripes. . .
-Important data stripe loses no more than 3 blocks and is fully recovered.
-The unimportant data stripe loses no more than r blocks and is fully recovered.
-The unimportant data stripe loses more than r, and the video is restored.
-The approximate code module is also responsible for allocating data blocks to ensure that the chunks of each stripe are distributed to different nodes, while ensuring that the global check chunk and the data chunk are not on one node.
+The Approximate Code module is responsible for encoding and decoding important and unimportant data and completely recovering the data within fault tolerance. For data that cannot be recovered, the Approximate Code module transmits it to the video recovery module for approximate recover videos.
+
+Approximate Code module is also responsible for allocating blocks of data to ensure that blocks of each stripe are distributed to different nodes, while ensuring that global check blocks and data blocks are not on one node.
 
 \subsection{Data Fuzzification and Video Recovery}
-In the approximate recovery mode, the recoverable and remaining data is passed to this module, and the blurred video is recovered through various video recovery techniques, and the upper application is notified. Through the content of the second chapter, we can approximate the data recovery. . .
+In the approximate recovery mode, the remaining data and important data are transferred to this module. Using a series of methods described in Section \ref{video storage}, frames that suffer from frame loss will be recovered using the interpolation algorithm; the corrupted frames will be processed into fuzzy images and approximately recovered by superpixel techniques.
 
 \section{Approximate Recovery}\label{ap-recovery}
 
-\begin{figure*}
+\begin{figure*}\label{fig-node-lost}
 \subfigure{
     \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-4-disks.eps}
 }
@@ -377,65 +395,86 @@ In the approximate recovery mode, the recoverable and remaining data is passed t
 \subfigure{
     \includegraphics[width = 0.22\linewidth]{photo/experiment/Ap-recovery-8-disks.eps}
 }
-\caption{Comparison of the data retention  between approximate storage and common methods when node is unrecoverable.}
+\caption{Comparison of the data retention  between approximate storage and common methods when node is unrecoverable.}\label{fig-node-lost}
 \end{figure*}
 
+In the approximate recovery mode, since unimportant data suffers unrecoverable loss, the recovery of damaged video files must be considered. Therefore, we evaluate the recovery of the video file in this section.
 
-In this chapter, we mainly discuss the number of video frames saved in Mode 1 when the unimportant data corruption is greater than the fault tolerance of the local calibration and the important data can be fully recovered.
-This proves that if the video data is not distinguished, in a typical
-This compares the ability of the approximation code to secure video data.
+\subsection{Experimental Setup}
+\subsubsection{Coding Algorithm} 
+We evaluate the condition of the video of H.264 encoding [] under approximate recovery. Mainly because H.264 is an advanced video coding algorithm widely used at present, at the same time, the common advanced coding algorithms have similar coding processes.
 
-Indicator: number of frames restored
-Test situation:
-Test set:
+\subsubsection{Data Set}
+We choose 100 videos from xxx data set[]. All videos are stored in ``.mp4'' format at 1280*720 HD resolution.
 
-Our experiments analyzed a series of videos. We define that when the I frame of the video is corrupted, the entire GOP is marked as unavailable (lost).
+\subsubsection{Metrics}
+We use the number of frames saved as an indicator to evaluate the ability of the approximate storage and normal scheme to preserve data in the event of an unrecoverable node failure.
+
+We define that when the I frame of the video is corrupted, the entire GOP is marked as unavailable (lost).
+
 Since the approximation code stores the I frame as important data, the integrity of the I frame is always guaranteed in our scheme.
 
-The experimental results are shown in Figure x. The approximate storage scheme can guarantee the number of frames of the video close to the theoretical limit.
+\subsubsection{Simulation}
+We store the video files on a single disk according to the approximate storage scheme and the common scheme, while traversing the damage of all the disks, from 1 to n-1, and counting the number of damaged p-frames and b-frames. We use this to get the number of P and B frames that can be completely saved in the case of m out of n disks.
 
+\subsection{Results}
+The experimental results are shown in Figure \ref{fig-node-lost}, where $n$ is 4,5,6 and 8. In a 8-node array, when 2 nodes are unrecoverable, the approximate recovery method protects nearly 1/4 P or B frames, while the common method lost more than half of these frames. In addition, the approximate storage scheme can guarantee the number of frames of the video close to the theoretical limit.
 
+\subsection{Analysis}
 Our experiments prove that if data is stored indiscriminately, the loss of important data will seriously affect the security of all data, and our scheme will control the data loss near the theoretical limit, ensuring video recovery and fuzzification. feasibility.
 
+\subsection{Frame Recovery ????}
+
 \section{Evaluation}\label{evaluation}
+In this section, we conduct a series of experiments to demonstrate the efficiency of Approximate Code in HDFS. 
+\subsection{Evaluation Methodology }
+We choose the RS code to compare with several XOR-based code, including TIP-code, EVENODD, STAR, RAID5 and RAID6. Since 3DFTs are typical configurations, we set the number of check nodes for the RS to 3.
+Experiments as well as mathematical analysis are used to demonstrate the performance of Approximate Code.
 
-Storage overhead
+\subsubsection{Metrics and Methods for Mathematical Analysis: }
+We use the \textbf{Storage Efficiency}, \textbf{Fault Tolerance} and \textbf{Write(update) Cost} defined in Section \ref{properties} as measure.
+We first analyze the impact of the settings of the three parameters on these metrics, then we compare these matrics with several EC methods.
 
-Encoding and decoding performance
+\subsubsection{Metrics and Methods for Experiments: }
+We use \textbf{Encoding Time} and \textbf{Recovery Time} as the metrics in our experiments.
 
-write performance
+Our experiment includes the calculation of these two metrics and can mainly be divided into several cases.
+We measure the encoding time by calculating the time to generate all parity blocks, and we measure the recovery time by calculating the time to fully or approximately recover the failure nodes.
+Both of them should be divided into 3 situation: single, double and triple node, so we discuss them separately.
+Also, the encoding and recovery time consist of computation time, I/O time and transimission time in distributed file system, which should be considered separately.
 
-recovery Overhead
+The environment of our experiments are shown in Table \ref{tab-platform}. We set a Hadoop system with one NameNode and 4 DataNodes. \textcolor{gray}{text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text }
 
-Recovery Frame
+\begin{table}[ht]
+\begin{tabular}{|l|l|}
+\hline
+Description & DELL R730 Server \\ \hline
+CPU & Intel Xeon 3.0GHz \\ \hline
+NIC 1Gbps & 1Gbps \\ \hline
+Memory & 32GB \\ \hline
+Disk & 8TB HDD \\ \hline
+OS & Linux 3.19 \\ \hline
+Platform & Hadoop HDFS 3.0.3 \\ \hline
+\end{tabular}
+\caption{Details of Our Evaluation Platform}\label{tab-platform}
+\end{table}
 
+\subsection{Results of Mathematical Analysis }
+In Figure X, we summarize the storage overhead and fault tolerance of the approximate code. It also shows the theoretical overhead of a single node write or update.
 
-Our experiment is mainly divided into two parts: erasure code and approximate storage analysis. The former mainly analyzes the performance of the approximate code and compares our scheme with the typical erasure code configuration; the latter mainly analyzes the data protection capability of the approximate code and other schemes in the case of data loss.
+\begin{itemize}
+    \item Storage efficiency. . .
+    \item Fault tolerance. . .
+    \item Write overhead. . .
+\end{itemize}
 
+\subsection{Encoding Performance}
+We use Approximate Code (4,2,4) and (5,1,6)...
 
+\subsection{Recovery Time}
+We use Approximate Code (4,2,4) and (5,1,6)...
 
-In this section, we use mathematical analysis and a series of experiments to demonstrate the performance of the approximate code.
-Evaluation method: We choose RS code, TIP-code, EVENODD, STAR, RAID5 for comparison.
-
-Mathematical analysis: We use the storage efficiency, fault tolerance and reconstruction cost defined above as a measure.
-
-In short, for each stripe, the unimportant data can tolerate any r node failures, while important data can tolerate any three node failures. However, the actual scene will be more complicated:
-For mode one. . .
-
-
-For fault tolerance, Mode 1 and Mode 2 will be different. Not only that, Mode 1 provides minimal fault tolerance, while Mode 2 provides near-code maximum fault tolerance.
-
-Obviously, for mode one, the approximate code can tolerate any r node failures, and the fault tolerance of important data is 3. For mode two, the approximate code provides an arbitrary level of r-node failure, and only if
-
-For mode two, if all chunks are distributed across different nodes, the approximate code provides the greatest degree of reliability. That is,
-
-
-
-We calculated the recovery efficiency and reconstruction cost of the approximate code in the case of single-node, two-node and three-node failures. Since the approximate code can be constructed in many forms, we mainly focus on it. . . . . .
-
-
-
-
+\subsection{Analysis}
 \section{Conclusion}\label{Conclusion}
 
 \textcolor{gray}{
