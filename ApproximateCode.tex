@@ -297,15 +297,20 @@ Because the STAR code is constructed just by adding a reverse parity chain to th
 \label{fig-ap-STAR}
 \end{figure}
 
-\subsection{Case Study}
-We introduce
+\subsection{Decoding Case Study}
+This section describe the decoding methods in different cases of node failure based on \emph{Structure 1} and \emph{Structure 2}.
+
+\subsubsection{Reconstruction cases in Structure 1}
+Under \emph{Structure 1}, important data and unimportant data are distributed in 
+
+\subsubsection{Reconstruction cases in Structure 2}
 
 \subsection{Properties of Approximate Code}
 
 We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table \ref{tab-AS-RS-AP}.
 \begin{itemize}
     \item Low Storage Overhead: Approximate Code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
-    \item Low Write Overhead: Approximate Code only needs to write $r*h$ local parity blocks and only $3-r$ global parity chunks, while tipical 3DFTs EC methods should write $3*h$ parity chunks.
+    \item Low Update Overhead: When one node is updated, Approximate Code only needs to write $r \times h$ local parity chunks and only $3-r$ global parity chunks, while tipical 3DFTs EC methods should write $3 \times h$ parity chunks.
     \item High reliability for important data. The Approximate Code guarantees 3DFTs for important data.
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two.
 \end{itemize}
@@ -315,11 +320,11 @@ We analyze the nature of the Approximate Code from the following aspects, and th
 \caption{Comparison of storage overhead and fault tolerance between Ap-Code (short for Approximate Code), RS and several XOR-based codes.}\label{tab-AS-RS-AP}
 \begin{tabular}{|c|c|c|c|}
 \hline
-EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}Fault \\ Tolerance\end{tabular} & \begin{tabular}[c]{@{}c@{}}Write\\ Overhead\end{tabular} \\ \hline
+EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}Fault \\ Tolerance\end{tabular} & \begin{tabular}[c]{@{}c@{}}Single Node\\Update Cost\end{tabular} \\ \hline
 RS($k,r$) & $(k+r)/k$ & $r$ & r \\ \hline
 EVENODD($k,2$) & $(k+2)/k$ & 2 & 2 \\ \hline
 TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 & 3 \\ \hline
-\begin{tabular}[c]{@{}c@{}}Ap-Code\\ ($k,r,h$)\end{tabular} & $\frac {(k+r)h+3-r}{k*h}$ & r to 3 & $r+\frac{3-r}{h}$ \\ \hline
+\begin{tabular}[c]{@{}c@{}}Ap-Code\\ ($k,r,h$)\end{tabular} & $\frac {(k+r)h+3-r}{k \times h}$ & r to 3 & $r+\frac{3-r}{h}$ \\ \hline
 \end{tabular}
 \end{table}
 
