@@ -182,7 +182,7 @@ Considering the vital role the I frame plays in the video coding, we therefore d
 \multicolumn{1}{|c|}{} & RAID 6 & medium & medium & high \\ \hline
 \multicolumn{2}{|c|}{Ap-Storage}& low & low & high \\ \hline
 \multirow{2}{*}{Ap-Code}& Imp & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5} 
- & unimportant &  & medium & high \\ \hline
+ & Unimp &  & medium & high \\ \hline
 \end{tabular}
 \end{table}
 
@@ -198,8 +198,8 @@ In this section, we introduce the design of Approximate Code and its properties 
 
 The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
 First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block} and \emph{stripe} we use in this paper. In a $n$-node system, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. 
-Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
-%Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or on different $n$-node systems.
+%Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
+Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or in different $n$-node systems.
 %We define the former situation as \emph{Situation I}, which we pay more attantion on, while the latter is defined as \emph{Situation II}.
 
 \begin{figure}[ht]
@@ -301,9 +301,13 @@ Because the STAR code is constructed just by adding a reverse parity chain to th
 This section describe the decoding methods in different cases of node failure based on \emph{Structure 1} and \emph{Structure 2}.
 
 \subsubsection{Reconstruction cases in Structure 1}
-Under \emph{Structure 1}, important data and unimportant data are distributed in 
+Under \emph{Structure 1}, important data and unimportant data are distributed in the same chunks, so they suffer the same risk of device failures. 
+When $r$ or less nodes fail, all the data can be reconstructed by local parity.
+When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, where the important data are recovered by global parity chunks and the damaged video data will be processed by the video recovery and fuzzy algorithm.
 
 \subsubsection{Reconstruction cases in Structure 2}
+Under \emph{Structure 2}, we consider important and unimportant data chunks separately.
+
 
 \subsection{Properties of Approximate Code}
 
