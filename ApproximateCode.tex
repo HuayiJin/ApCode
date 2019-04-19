@@ -12,6 +12,7 @@
 \usepackage{graphicx}
 \usepackage{subfigure}
 
+
 \renewcommand{\algorithmicrequire}{\textbf{Input:}} % Use Input in the format of Algorithm
 \renewcommand{\algorithmicensure}{\textbf{Output:}} % Use Output in the format of Algorithm
 
@@ -68,82 +69,43 @@ Section \ref{Implementation} introduce the implementation of our design, and sec
 The evaluation is presented in Section \ref{evaluation} and the conclusion of our work is in Section \ref{Conclusion}. 
 
 \section{Related Work and Our Motivation}\label{RelatedWork}
-This section presents background on erasure codes, related video storage methods, approximate storage, and our motivation.
+In this section, we introduce the background of Video frame recovery, existing solutions to reduce storage cost and the motivation of this paper.
+To facilitate the discussion, we summarize the symbols used in this paper in Table \ref{parameter}.
 
-\iffalse
 \begin{table}[]
+\caption{The symbols used in this paper.}\label{parameter}
+\centering
 \begin{tabular}{|c|l|}
 \hline
-Symbols & Description                          \\ \hline\hline
-$n$     & the number of chunks in a stripe     \\ \hline
-$m$     & the number of parity chunks          \\ \hline
-$r$     & the number of sectors in a chunk     \\ \hline
-$s$     & the number of columns of $D_I$       \\ \hline
-$t$     & the number of rows of $D_I$          \\ \hline
-$D_I$   & the zone of important data sectors   \\ \hline
-$D_M$   & the zone of unimportant data sectors       \\ \hline
-$Q$     & the zone of important parity sectors \\ \hline
-$P$     & the zone of unimportant parity sectors     \\ \hline
+Symbols & Description \\ \hline
+$k$ & the number of data nodes in an array \\ \hline
+$r$ & the number of local parity nodes in an array \\ \hline
+$n$ & the number of nodes in an array ($n=k+r$) \\ \hline
+$h$ & the number of arrays \\ \hline
+$s$ & the number of blocks in a node \\ \hline
+LP & local parity nodes \\ \hline
+GP & global parity nodes \\ \hline
+ID & important data \\ \hline
+UD & unimportant data \\ \hline
+ &  \\ \hline
 \end{tabular}
 \end{table}
-\fi
 
 \subsection{Existing Erasure Codes}
+Reliability is a critical issue since disk failures are typical in storage systems. To improve the reliability of storage systems, several RAID forms (e.g., RAID-5, RAID-6, 3DFTs) and erasure codes are proposed by researchers.  Traditional erasure codes can be categorized into two classes, Maximum Distance Separable (MDS) codes and non-MDS codes. MDS codes aim to offer data protection with optimal storage efficiency. On the other hand, non-MDS codes improve the performance or reliability by consuming extra storage space.
 
-Reed Solomon Code (RS code) is a kind of Maximum Distance Separable (MDS) Codes, which have the optimal storage efficiency. The encoding and decoding operations of RS code are based on Galois Field, which leads to a higher computational complexity comparing to XOR-based codes.
+In the past two decades, several
+famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD
+code [1], RDP code [8], Blaum-Roth code[3], X-code [44], Liberation code [28], Liber8tion code [27], Cyclic [7] code, B-Code [45], Code-M [40], H-code [43], P-code [20] and HVcode [36], etc.
 
-However, due to its high scalability, RS code has been widely applied in traditional cloud storage systems. In a RS code which is delegated by RS($k$, $r$), $n = k + r$ denotes the total number
-of nodes participating in the erasure coding schema, $k$ stands for the number of data nodes, and $r$ is the number of parity nodes. Generally data is organized and encoded/decoded with the minimum coding unit block. RS($k$, $r$) can tolerate at most $r$ failures at the same time, and single node failure can be recovered from any $k$ survivors. The encoding case of RS code and the failure tolerance processus are shown in Figure 1.
+In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes [33], Cauchy-RS codes [4], STAR code [19], Triple-Star code [41], Triple-Parity code [9], HDD1 code [39], RSL-code [10], RL-code [11], and so on. Typical non-MDS codes contain WEAVER codes [14], HoVer
+codes [13], T-code [38], HDD2 code [39], Pyramid codes [18], Local Reconstruction Codes [16], Locally Repairable Codes [34], etc.
 
+Several classic erasure codes are illustrated in detail as below,
 
-\begin{figure}[ht]
-\centering
-\begin{minipage}[b]{0.3\textwidth}
-\includegraphics[width=0.52\textwidth]{photo/RS1.jpg}
-\includegraphics[width=0.4\textwidth]{photo/RS2.jpg}
-\end{minipage}
-\caption{Encoding process of RS($5$, $3$)}
-\end{figure}
+%从这里开始简单讲解几种RAID-6或三盘容错阵列的纠删码，如RS，EVENODD，RDP，STAR，LRC, H-Code，TIP-Code等，并且用编码图来说明（主要是实验中用到的几种编码）。
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.3\textwidth]{photo/RS3.jpg}
-\caption{Recovery processing of RS($5$, $3$) in the case of 3 random failure}
-\end{figure}
-
-\textcolor{red}{In our case, RS code could be applied. As the important data are uniformly-distributed in every node, the data in every node could be considered independent to each other. The principal of video storage divides the data into a small part of important frame and other subordinate frames. If a storage failure occurs in a node that stores largely the important frame, the data recovery may not be complete because the loss of the important frame could lead to a video quality degradation. In this way, this kind of uniformly-distribution would not allow the failure causing the data loss bigger than expected.}
-
-\textcolor{red}{The data distribution assures the independency of nodes, the recovery of data could follow nearly the theoretical case. The recovery processus need the reversible matrix of original matrix. The calculation is shown in Figure 2.}
-
-Another type of erasure code worth mentioning is XOR based codes, which uses purely XOR operations. There are two different approaches to implement XOR codes. One is to use generator matrix\cite{plank2004practical} for encoding/decoding operations, and the other is done by using specific algorithm for each code\cite{huang2008star}. In nowadays cloud storage systems, erasure codes for correcting two or three disk failures are widely used to ensure the reliability, and XOR-based codes show great advantages on encoding/decoding speed when the storage system is recovering from failures. XOR-based codes can be further categorized as XOR-based codes used in RAID-6 and ones to backup triple disk failure.
-
-When it comes to RAID-6, Maximum Distance Separable (MDS) \cite{jin2009p} \cite{cassuto2009cyclic} \cite{blaum1999lowest} \cite{corbett2004row} \cite{blaum1995evenodd} \cite{bloemer1995xor} codes are frequently discussed. There are two types of MDS codes with different properties. One of them is called horizontal MDS codes, but it suffers from high write complexity and unbalanced I/O distribution. Accordingly, the other is called vertical MDS codes which has a common disadvantage of having resource-consuming partial strip write to continuous data.
-
-A novel and efficient XOR-based RAID-6 code, named hybrid code(h-code) \cite{inproceedings}, is introduced a few years ago. This type of codes exploits the benefits of both horizontal and vertical MDS codes, therefore achieving optimization of partial stripe writes for RAID-6 in addition. H code can be applied to any array of (p+1) disks, where p is a prime number. The parities in H-Code are typical row parity and anti-diagonal parity. H-code does not have a specialized anti-diagonal parity strip, while it distributes the anti-diagonal parity elements among all the disks. Its horizontal parity ensures a partial stripe write to continuous data elements in a row share the same row parity chain, which achieves optimal partial stripe write performance. H code can be applied to any array of (p+1) disks, where p is a prime number. The analysis shows that H-Code achieves excellent performance in storage efficiency, encoding/decoding computational complexity and single write complexity. 
-
-
-\subsection{Video Storage}\label{video storage}
-For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded and compressed before storage. Lossy compression is a common method that provides a much lower compression ratio than lossless compression while ensuring tolerable loss of video quality, and that is why we focus on such algorithms.
-
-
-H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
-
-H.264 classifies all frames into three different categories:
-\begin{enumerate}
-    \item I frame: A frame that does not depend on other frame data, which means it can be decoded independently of other frames.
-    \item P frame: A frame holds the changes compared to the previous frame, thus saving much space by leaving out redundant information.
-    \item B frame: A frame saves more space by utilizing the data of both the preceding and following frame.
-\end{enumerate}
-In order to prevent the circumstance where a P or B frame references another distant frame, the concept of GOP is introduced. A GOP consists of multiple consecutive I,P and B frames which are independent of the frames in other GOPs. In other words, a P or B frame can only reference the ones inside the GOP which it belongs to, as shown in Figure \ref{H264-IPB}.
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.45\textwidth]{photo/H264_IPB.pdf}
-\caption{A sample of GOPs in H.264}
-\label{H264-IPB}
-\end{figure}
-
-
-\subsubsection{Video Frame Recovery}
+\subsection{Video Frame Recovery}
 
 In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation.
 
@@ -151,10 +113,6 @@ Video frame interpolation is one of the basic video processing techniques, an at
 
 
 In deep learning methods, optical changes between the frames are trained in a supervised setup mapping two frames to their ground truth optical flow. Among all these, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the new state-of-the-art results in terms of PSNR and middlebury benchmark respectively.
-
-
-The methods are relied on the completeness of some video frame, which enhances the importance of the only intact type of frame data in commonly used H.264 standard: the I frame.
-
 
 \subsection{Approximate Storage}
 Storage techniques nowadays generally regard all information of the same importance, which causes significant costs in energy, disk drives and computing resources. But not all data need high-reliability storage for its backup. That is when the concept of approximate storage is introduced. Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
@@ -166,11 +124,7 @@ Approximate storage loosens the requirement of storage reliability by allowing q
 
 
 However, it is too naive to store data in approximate storage units indiscriminately. Related research \cite{guo2016high} shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs.
-
-
-In the storage of video data, as described in \ref{video storage}, the I frame is the key to decoding the entire GOP. An error in the I frame will cause a decoding error in the P frames and the B frames, and the data loss of the I frame will cause the entire GOP to fail. In contrast, the error or loss of a P frame has less impact, while the B frame is most tolerant of errors because no other frames depend on it.
-
-Considering the vital role the I frame plays in the video coding, we therefore define I frame data as the critical data of a video file. Although some part of P frames may play a relatively important role in the decoding process of a video, it’s importance can not exceed that of the I frames.
+Therefore, it is very important to distinguish the importance of video data. This can usually be done by an experienced expert or automatically by a program.
 
 \begin{table}[ht]
 \centering 
@@ -194,44 +148,53 @@ First, existing erasure codes generally reach or exceed 3DFTs, and use more than
 To solve these problems, we propose a new erasure code called Approximation Code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
 
 \section{Approximate Code}\label{ApCode}
-In this section, we introduce the design of Approximate Code and its properties through a few simple examples. 
+In this section, we introduce Approximate Code and its properties through a few simple examples. 
 
+\subsection{Overview of Approximate Code}
 The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
-First, we use Figure \ref{fig-chunk-block} to illustrate the term \emph{chunk}, \emph{block} and \emph{stripe} we use in this paper. In a $n$-node system, $k$ of them are data nodes and $r=n-k$ nodes are for parity. Each node can be divided into multiple blocks. We focus on the $s$ blocks of the same logical position of each node, and we treat these $s$ nodes as a \emph{chunk}. The $n$ chunks constitute a \emph{stripe}. 
-Approximate Code are designed for $h$ stripes, where each stripe is in the same $n$-node system.
-%Approximate Code are designed for $h$ stripes, where each stripe can be in the same $n$-node system, or in different $n$-node systems, which is controlled by the distributed file system.
-%We define the former situation as \emph{Situation I}, which we pay more attantion on, while the latter is defined as \emph{Situation II}.
+In a $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks, and we label the number of blocks in a node as $s$.
+Approximate Code are designed for $h$ arrays, therefore it includes $k*n$ data nodes and $r*h$ local parity nodes.
+Besides them, $3-r$ nodes are designed for global parity, and the total number of nodes in Approximate Code ($k,r,h$) is $$h*(k+r) +3-r$$
 
-\begin{figure}[ht]
+\subsection{Framework Design}
+The Approximate Code provides an erasure code framework for video storage in the cloud system. It uses an approximate strategy to split the erasure code scheme into two parts with different fault tolerances for application to important and minor data. It mainly includes two operations of coding segmentation and structure selection.
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.35\textwidth]{photo/chunk-block.pdf}
-\caption{A sample of chunks, stripes and blocks}
-\label{fig-chunk-block}
+\includegraphics[width=\linewidth]{photo/Framework.pdf}
+\caption{The framework of Approximate Code}
+\label{fig-framework}
 \end{figure}
 
-\subsection{Design of Approximate Code}
-Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-414}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each chunk, and in \emph{Structure 2}, it occupies 1 of all $h$ data stripes.
+\subsubsection{Code segmentation}
+For any type of input erasure code, we assume that its fault tolerance is $x$. The Approximate Code first splits its parity block into two parts: local and global parity. The former verifies all important and non-critical data, while the latter only verifies important data. Code segmentation are designed to ensure that local parities can tolerate any $r$ node failures, so the fault tolerance of non-critical data is $r$. For important data, the code segmentation ensures that the parity block of important data can be completely recombined into the original $x$DFTs erasure code scheme.
+
+\subsubsection{Structure selection}
+The Approximate Code framework then choose the Structure for the input erasure code.
+Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-414}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each node, and in \emph{Structure 2}, it occupies 1 of all $h$ data arrays.
 We define that $h=s$, so in \emph{Structure 1} and \emph{Structure 2},important data accounts for $1/h$ of all data.
 
-In each stripe, $r$ chunks are local parity chunks, which is encoded by the rest $k$ data chunks in the stripe.
-In addition, there are another $3-r$ global chunks, which are calculated only by the important data blocks. It should be point out that the global parity chunks should be placed in different nodes and should be different from the data nodes. 
+Figure \ref{fig-framework} shows the process of turning a code(assume that it is XXX) to Approximate XXX code. XXX-code has two parities chunks, the horizontal and the diagonal. Approximate Code framework define the former as local parity chunk and the latter as the global parity chunk. Then \emph{Structure 2} is selected and the Approximate XXX Code is a 16-node system.
+
+In each array, $r$ nodes are local parity nodes, which is encoded by the rest $k$ data nodes in the array.
+In addition, there are another $3-r$ global nodes, which are calculated only by the important data blocks. It should be point out that the global parity nodes should be placed in different nodes and should be different from the data nodes. 
 
 The number of important data blocks is $h \times k$, and they generate $h \times (3-r)$ global parity blocks.
-To sum up, the number of blocks involved in the approximate code is 
+To sum up, the number of blocks involved in the Approximate Code is 
 $$(k+r)h^2 + (3-r) h$$
 
 
-Approximate Code guarantees that for each stripe, the unimportant data can tolerate any $r$ node failures. Usually, $r$ is equal to 1 or 2, which covers most node failure scenarios, while important data are provided 3DFTs.
+Approximate Code guarantees that for each array, the unimportant data can tolerate any $r$ node failures. Usually, $r$ is equal to 1 or 2, which covers most node failure scenarios, while important data are provided 3DFTs.
 
 The construction of Approximate Code (4,1,4, \emph{Structure 1}) and Approximate (3,1,3, \emph{Structure 2}) can be illustrated by Figure \ref{fig-ap-414},
 
-%As mentioned before, if it is considered that the chunks from the same column belong to the same node, this example includes 4 stripes with 7 nodes; otherwise, it includes 4 stripes with 22 nodes.
+%As mentioned before, if it is considered that the nodes from the same column belong to the same node, this example includes 4 arrays with 7 nodes; otherwise, it includes 4 arrays with 22 nodes.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
 \caption{A sample of Approximate Codes $(4,1,4)$ in \emph{Structure 1}, and Approximate Code $(3,1,3)$ in \emph{Structure 2}.
-Data chunks are marked as $N_i$, important data are marked as water green, local parity chunks are marked as orange and global parity chunks are marked as red.
+Data nodes are marked as $N_i$, important data are marked as water green, local parity nodes are marked as orange and global parity nodes are marked as red.
 }
 \label{fig-ap-414}
 \end{figure}
@@ -244,10 +207,10 @@ Data chunks are marked as $N_i$, important data are marked as water green, local
 \end{figure}
 
 \subsection{RS-based Approximate Code}
-The construction of the Approximate Code based on RS is simple. In \emph{Structure 1}, the encoding unit is block. A horizontal RS parity is performed on the corresponding block in each chunk to generate a local parity block. At the same time, the important data blocks is horizontally verified by RS and generate multiple global check blocks.
+The construction of the Approximate Code based on RS is simple. In \emph{Structure 1}, the encoding unit is block. A horizontal RS parity is performed on the corresponding block in each node to generate a local parity block. At the same time, the important data blocks is horizontally verified by RS and generate multiple global check blocks.
 
-In \emph{Structure 2}, the encoding unit is chunk.
-We perform horizontal RS parity in each stripe to generate local parity chunks. The global parity chunk is generated only by the important data stripe.
+In \emph{Structure 2}, the encoding unit is node.
+We perform horizontal RS parity in each array to generate local parity nodes. The global parity node is generated only by the important data array.
 
 Figure \ref{fig-ap-rs} is the RS generation matrix with $k=4$ and $r=1$.
 It shows that to ensure that the coefficients of the local and the global parity are linearly independent is easy. If necessary, Approximation Code can easily achieve higher reliability guarantees based on RS, but in most cases this is excessive, so we will not discuss it here.
@@ -259,7 +222,7 @@ Since we mainly provide 3DFTs for important data, we prefer to construct Approxi
 \subsubsection{RAID5-TIP Approximate Code}
 
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each stripe, local parity blocks provide horizontal XOR parity, and between stripes, global parity provide diagonal parity and anti-diagonal parity. 
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -272,74 +235,65 @@ Since the encoding process of important data blocks can be seen as RAID5 plus TI
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.3\textwidth]{photo/AP-TIP-v2.pdf}
+\includegraphics[width=0.3\textwidth]{photo/AP-516.pdf}
 \caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
 \label{fig-ap-TIP}
 \end{figure}
 
 \begin{figure}[h]
-\subfigure[Diagonal parity $GP_0$ to $GP_5$, (e.g., $GP_0=ID_{0,0} \oplus ID_{1,4} \oplus ID_{2,3} \oplus ID_{4,2} \oplus ID_{5,1}$]{
-    \includegraphics[width=0.2\textwidth]{photo/TIP-diag.pdf}
-}
-\subfigure[Anti-diagonal parity $GP_6$ to $GP_{11}$, (e.g., $GP_7=ID_{0,0} \oplus ID_{1,1} \oplus ID_{2,2} \oplus ID_{4,3} \oplus ID_{5,4}$)]{
-    \includegraphics[width=0.2\textwidth]{photo/TIP-anti-diag.pdf}
-}
+
+    \includegraphics[width=0.48\textwidth]{photo/RAID5-TIP.pdf}
+
 \caption{Encoding pf TIP-code}
 \label{fig-TIP}
 \end{figure}
 
 \subsubsection{EVENODD-STAR Approximate Code}
 Figure \ref{fig-ap-STAR} shows the construction of Approximate Code ($5,2,4$) in \emph{Structure 2} based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
-EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in stripe 0, while unimportant data blocks occupy the rest stripes. 
-$LP_{i,0}$ to $LP_{i,3}$ consist the horizontal parity chunks and $LP_{i,4}$ to $LP_{i,7}$ consist diagonal parity chunks for stripe $i$. So the form of every stripe fit the construction of EVENODD. Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. 
-The $GP$ is the anti-diagonal parity chunk and guarantee important data chunks form the construction method of STAR, which ensures the 3DFTs.
+EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in array 0, while unimportant data blocks occupy the rest arrays. 
+$LP_{i,0}$ to $LP_{i,3}$ consist the horizontal parity nodes and $LP_{i,4}$ to $LP_{i,7}$ consist diagonal parity nodes for array $i$. So the form of every array fit the construction of EVENODD. Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. 
+The $GP$ is the anti-diagonal parity node and guarantee important data nodes form the construction method of STAR, which ensures the 3DFTs.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.35\textwidth]{photo/AP-EVEN-star-v2.pdf}
+\includegraphics[width=0.45\textwidth]{photo/AP-523.pdf}
 \caption{The XOR-based Approximate Code ($5,2,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
 \label{fig-ap-STAR}
 \end{figure}
 
 \begin{figure}[ht]
-\subfigure[]{
-    \includegraphics[width = 0.3 \linewidth]{photo/star-hori.pdf}
-}
-\subfigure{
-    \includegraphics[width = 0.3 \linewidth]{photo/star-diag.pdf}
-}
-\subfigure{
-    \includegraphics[width = 0.3 \linewidth]{photo/star-anti.pdf}
-}
-\caption{EVENODD only consist horizontal and diagonaol parity, while STAR add the anti-diagonal parity chunk based on EVENODD and can tolerate 3 device failures.}\label{fig-star}
+
+\includegraphics[width = 0.98 \linewidth]{photo/EVENODD-STAR.pdf}
+
+\caption{EVENODD only consist horizontal and diagonaol parity, while STAR add the anti-diagonal parity node based on EVENODD and can tolerate 3 device failures.}\label{fig-star}
 \end{figure}
 
 \subsection{Case Study}
 This section describe the decoding methods in different cases of node failure based on \emph{Structure 1} and \emph{Structure 2}.
 
 \subsubsection{Reconstruction cases in Structure 1}
-Under \emph{Structure 1}, important data and unimportant data are distributed in the same chunks, so they suffer the same risk of device failures. 
+Under \emph{Structure 1}, important data and unimportant data are distributed in the same nodes, so they suffer the same risk of device failures. 
 When $r$ or less nodes fail, all the data can be reconstructed by local parity.
-When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, in which the important data are recovered by global parity chunks and the damaged video data will be processed by the video recovery and fuzzy algorithm.
+When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, in which the important data are recovered by global parity nodes and the damaged video data will be processed by the video recovery and fuzzy algorithm.
 
 \subsubsection{Reconstruction cases in Structure 2}
-Under \emph{Structure 2}, we consider important and unimportant data chunks separately.
+Under \emph{Structure 2}, we consider important and unimportant data nodes separately.
 
-For node level failure, the fault tolerance of \emph{Structure 2} is exactly as \emph{Structure 1},When it comes to chunk level failures, \emph{Structure 2} can tolerate more unimportant data chunk failures than \emph{Structure 1}. The parity chain of important data does not pass through the unimportant data, so the damage of these chunks does not affect the recovery of important data.
+For node level failure, the fault tolerance of \emph{Structure 2} is exactly as \emph{Structure 1},When it comes to node level failures, \emph{Structure 2} can tolerate more unimportant data node failures than \emph{Structure 1}. The parity chain of important data does not pass through the unimportant data, so the damage of these nodes does not affect the recovery of important data.
 
 ///////////////////////
-Under the random probability model of chunks, the probability of failure of the Approximate Code under 4 chunk damage is
+Under the random probability model of nodes, the probability of failure of the Approximate Code under 4 node damage is
 \begin{equation}
     P_{failure} = \frac{C_{k+3}^4}{C_{(k+r)h+3-r}^4}
 \end{equation}
-which is the 4 chunk failure situation in $k$ important data chunks and 3 important parity chunks. For example, the failure situation of Approximate Code ($4,1,4$, \emph{Structure 2}) probability is 0.478\%.
+which is the 4 node failure situation in $k$ important data nodes and 3 important parity nodes. For example, the failure situation of Approximate Code ($4,1,4$, \emph{Structure 2}) probability is 0.478\%.
 
 \subsection{Properties of Approximate Code}\label{properties}
 
 We analyze the nature of the Approximate Code from the following aspects, and the calculation method of the relevant indicators is given in Table \ref{tab-AS-RS-AP}.
 \begin{itemize}
     \item Low Storage Overhead: Approximate Code reduces storage overhead by approximating storage strategies. This property is more pronounced for data with a smaller proportion of important data.
-    \item Low Update Overhead: When one node is updated, Approximate Code only needs to write $r \times h$ local parity chunks and only $3-r$ global parity chunks, while tipical 3DFTs EC methods should write $3 \times h$ parity chunks.
+    \item Low Update Overhead: When one node is updated, Approximate Code only needs to write $r \times h$ local parity nodes and only $3-r$ global parity nodes, while tipical 3DFTs EC methods should write $3 \times h$ parity nodes.
     \item High reliability for important data. The Approximate Code guarantees 3DFTs for important data.
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two.
 \end{itemize}
@@ -365,7 +319,7 @@ TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 & 3 \\ \hline
 \label{fig-implementation}
 \end{figure}
 
-Compared with the traditional scheme that does not consider the meaning of the upper stripe data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate stripe between the upper stripe application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage stripe, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
+Compared with the traditional scheme that does not consider the meaning of the upper array data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate array between the upper array application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage array, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
 
 \subsection{Data Segmentation and Distribution module}
 The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important part) and other data. (unimportant part).
@@ -375,7 +329,7 @@ The data distribution module distributes important data and unimportant data in 
 \subsection{Approximate Code module}
 The Approximate Code module is responsible for encoding and decoding important and unimportant data and completely recovering the data within fault tolerance. For data that cannot be recovered, the Approximate Code module transmits it to the video recovery module for approximate recover videos.
 
-Approximate Code module is also responsible for allocating blocks of data to ensure that blocks of each stripe are distributed to different nodes, while ensuring that global check blocks and data blocks are not on one node.
+Approximate Code module is also responsible for allocating blocks of data to ensure that blocks of each array are distributed to different nodes, while ensuring that global check blocks and data blocks are not on one node.
 
 \subsection{Data Fuzzification and Video Recovery}
 In the approximate recovery mode, the remaining data and important data are transferred to this module. Using a series of methods described in Section \ref{video storage}, frames that suffer from frame loss will be recovered using the interpolation algorithm; the corrupted frames will be processed into fuzzy images and approximately recovered by superpixel techniques.
@@ -459,8 +413,98 @@ Platform & Hadoop HDFS 3.0.3 \\ \hline
 \caption{Details of Our Evaluation Platform}\label{tab-platform}
 \end{table}
 
-\subsection{Results of Mathematical Analysis }
-In Figure X, we summarize the storage overhead and fault tolerance of the approximate code. It also shows the theoretical overhead of a single node write or update.
+\subsection{Metrics and Methods of Experiment}
+The metric of our experiments is time. The independent variable in this experiment is the number of nodes. We change the number of data nodes with different methods to compare the operation time. The experiments are divided into two parts, as one part is for measuring the encoding time of different methods, the other part is for timing the decoding time of different methods. The unit of the time is micro-second.\par
+
+There are mainly two ways to compare different methods. One is for comparing the operational time of AP code with different parameters and that of one different method as we augment the number of data nodes. The other is for a general comparison with five data nodes for the encoding time, the decoding time in one disk, the decoding time in two disks and the decoding time in three disks for every method with its different parameters.\par
+
+The environment of our experiment is listed below………….////////\par
+
+
+\subsection{Numerical Results of Mathematical Analysis}
+\subsubsection{Encoding Time Analysis}
+From the Figure xx a), we could find out that the AP code encodes largely faster than RS ($k$, $3$). The rate of optimisation between AP($k$, $1$, $6$) and RS ($k$, $3$) is from 976.4\% (3 nodes’ case) to 849.2\% (13 nodes’ case), as the encoding time of AP codes multiplies about 4.7 times and that of RS code multiplies about 4.2 times. The Figure xx b) and c) illustrate that the effet of Star code and Tip code is similar, and the difference between them and AP code is not very large. The rate of optimisation between AP ($k$, $1$, $6$) and Star ($k$, $3$) is from 125.6\% (3 nodes’ case) to 127.3\% (17 nodes’ case). According to Figure xx d), we could see that AP code largely reduces the encoding time, comparing to LRC method. The rate of optimisation between AP code (k, 1, 4) and LRC (4k, 2, 4) is from 596.0\% (3 nodes’ case) to 615.8\% (13 nodes’ case); and the rate of optimisation between AP code ($k$, $1$, $6$) and LRC ($6k$, $2$, $6$) is from 684.0\% to 443.1\%. Considering the optimisation rate, AP code ($k$, $1$, $4$) is the best among the four.\par
+
+
+
+\begin{figure*}[ht]
+\subfigure[AP and RS]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example1Modi2.jpg}
+}
+\subfigure[AP and STAR]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example2Modi1.jpg}
+}
+\subfigure[AP and TIP]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example3.jpg}
+}
+\subfigure[AP and LRC]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example4.jpg}
+}
+\caption{Encoding Time Comparison between AP method and other method}\label{fig-encoding}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+\subfigure[AP and RS]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example5Modi1.jpg}
+}
+\subfigure[AP and STAR]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example6.jpg}
+}
+\subfigure[AP and TIP]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example7.jpg}
+}
+\subfigure[AP and LRC]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example8.jpg}
+}
+\caption{Decoding Time Comparison in One Disk between AP method and other method}\label{fig-decoding-1}
+\end{figure*}
+
+
+\begin{figure*}[ht]
+\subfigure[AP and RS]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example9.jpg}
+}
+\subfigure[AP and STAR]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example10.jpg}
+}
+\subfigure[AP and TIP]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example11Modi1.jpg}
+}
+\subfigure[AP and LRC]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Example12.jpg}
+}
+\caption{Decoding Time Comparison in Two Disk between AP method and other method}\label{fig-decoding-2}
+\end{figure*}
+
+According to Figure xx, we see that RS ($5$, $3$) has the longest encoding time among these methods, and the encoding time of LRC method is not short either. The methods whose encoding time is approaching to the AP method are Star and Tip. Among the AP method, AP ($5$, $1$, $6$) has the shortest encoding time.\par
+
+
+\subsubsection{Decoding Time in One Disk Analysis}
+From the Figure xx a), we could find out that the AP code decodes faster than RS ($k$, $3$). The rate of optimisation between AP method ($k$, $1$, $6$) and RS ($k$, $3$) is from 395.2\% (3 nodes’ case) to 353.0\% (13 nodes’ case). The Figure xx b) and c) illustrate that the effet of Star code and Tip code is similar, and there is nearly no difference among these three methods. The rate of optimisation between AP method ($k$, $2$, $6$) and Star ($k$, $3$) is from 3.867\% (3 nodes’ case) to 2.971\% (17 nodes’ case). According to Figure xx d), we could see that LRC ($4k$, $2$, $4$) decodes a bit faster than AP code, but LRC ($6k$, $2$, $6$) decodes slower than AP code. LRC ($4k$, $2$, $4$) decodes faster from 5.941\% (3 nodes’ case) to 9.542\% (13 nodes’ case) than AP ($1$, $4$); but AP ($1$, $6$) decodes faster from 0.476\% (3 nodes’ case) to 6.196\% (13 nodes’ case) than LRC ($6k$, $2$, $6$).\par
+
+
+According to Figure xx, we see that RS ($5$, $3$) has the longest decoding time among these methods, while other methods decoding time in one disk have no significant difference.\par
+
+
+\begin{figure*}[ht]
+\subfigure[Encoding Time]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/BarEnT.jpg}
+}
+\subfigure[Decoding Time in One Node Failure]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/BarDeT1Modi1.jpg}
+}
+\subfigure[Decoding Time in Two Node Failure]{
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/BarDeT2.jpg}
+}
+\caption{Comparison of several matrics between different methods when number of data nodes are 5}\label{fig-BAR}
+\end{figure*}
+
+
+\subsubsection{Decoding Time in Two Disks Analysis}
+From the Figure xx a), we could find out that the AP code decodes remarkably faster than RS ($k$, $3$) in two disks. The rate of optimisation between AP method ($k$, $1$, $6$) and RS ($k$, $3$) is from 2782.1\% (3 nodes’ case) to 2593.9\% (13 nodes’ case). The Figure xx b) and c) illustrate that the effet of Star code and Tip code for decoding in two disks is similar, and the difference between them and AP ($k$, $2$, $4$ or $6$) is not very large. However, the difference is large when it comes to AP ($k$, $1$, $6$) The rate of optimisation between AP ($k$, $1$, $6$) and Star ($k$, $3$) is from 520.8\% (3 nodes’ case) to 508.6\% (17 nodes’ case). According to Figure xx d), we could see that AP code largely reduces the decoding time in two disks in comparison to LRC method. The rate of optimisation between AP code ($k$, $1$, $4$) and LRC ($4k$, $2$, $4$) is from 1971.5\% (3 nodes’ case) to 1265.5\% (13 nodes’ case); and the rate of optimisation between AP code ($k$, $1$, $6$) and LRC ($6k$, $2$, $6$) is from 2941.3\% to 1970.7\%. Considering the optimisation rate, AP code ($k$, $1$, $6$) is the best among the four.\par
+
+According to Figure xx, we see that RS ($5$, $3$) has the longest decoding time among these methods, the LRC method is not suitable for decoding in two disks. AP code, here, largely reduces the decoding time in two disks, while the AP ($5$, $1$, $6$) keeps the shortest decoding time.
 
 \begin{itemize}
     \item Storage efficiency. . .
@@ -477,10 +521,6 @@ We use Approximate Code (4,2,4) and (5,1,6)...
 \subsection{Analysis}
 \section{Conclusion}\label{Conclusion}
 
-\textcolor{gray}{
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-    text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text
-}
 
 
 \begin{acks}
