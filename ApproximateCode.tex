@@ -18,7 +18,7 @@
 
 \begin{document}
 
-\title{Approximate Code: A Cost-Effective Erasure Coding Framework for Video Applications in Cloud Storage Systems}
+\title{Approximate Code: A Cost-Effective Erasure Coding Framework for Tiered Video Storage in Cloud Systems}
 
 \author{Huayi Jin}
 
@@ -49,10 +49,15 @@ To address this problem, in this paper, we propose Approximate Code, which is an
 \section{Introduction}
 For typical cloud storage systems such as Windows Azure [CITE] and Amazon AWS [CITE], erasure coding is a popular technique to provide both high reliability and low monetary cost [CITE EC], where triple disk failure fault tolerant arrays (3DFTs) are widely used. Typical erasure codes can be divided into two categories, RS-based Codes [CITE] and XOR-based codes [CITE]. RS-based codes [CITE] are encoded according the Galois Field Computation in Reed Solomon Code [CITE], which allow flexible configuration and have a little higher computation cost. XOR-based codes [CITE] simplify the computation, but the scalability is a significant issue in previous literatures.
 
-With the increasing demand on higher resolution and frame rate for video data, tremendous storage devices are highly desired in cloud storage systems, which makes data centers much bigger. On YouTube, nearly 140,000 hours of video are played every minute and 400 hours of video are uploaded [DESCRIBE AND CITE YOUTUBE]. Therefore, in this paper, we set out to answer the following question,
-In a cloud storage system, how to efficiently store the tremendous video data in 3DFTs?
+With the increasing demand on higher resolution and frame rate for video data, massive storage devices are highly desired in cloud storage systems, which makes data centers much bigger.
+Therefore, in this paper, we set out to answer the following question,
+\textbf{In a cloud storage system, how to efficiently store the tremendous video data in 3DFTs?}
 
-To reduce the storage cost in cloud storage systems, a feasible solution is approximate storage. [DESCRIBE AND CITE APPROXIMATE STORAGE] but the data reliability cannot be guaranteed. Another solution is using disk arrays like RAID-5 or RAID-6 [CITE RAID], but the capability of fault tolerance should be sacrificed. Therefore, existing solutions cannot provide low storage cost and high reliability simultaneously.
+
+To reduce the storage cost in cloud storage systems, a feasible solution is approximate storage. Approximate storage exposes unimportant data to errors, saving the overhead of redundant backups [CITE APPROXIMATE STORAGE], thus the data reliability cannot be guaranteed. 
+Another solution is using disk arrays like RAID-5 or RAID-6 [CITE RAID], but the capability of fault tolerance would be sacrificed.
+Data compression\footnote{We do not discuss video compression technology much in this paper because it is an application layer algorithm and can be used with our scheme.} is also a common strategy for reducing storage overhead \cite{ziv1977universal} \cite{ziv1978compression} \cite{deutsch1996deflate}. However, the compression and decompression process results in very large computational overhead, high recovery speed and high response time, which is not suitable for video applications.
+Therefore, existing solutions cannot provide low storage cost and high reliability simultaneously.
 
 To address the above problem, in this paper, we propose Approximate Code, which is an erasure coding framework to provide comprehensive solution for video data storage in cloud systems. The key idea of Approximate Code is treating the important/unimportant data in different ways. For important data, we add additional parities to provide high capability of fault tolerance. On the other hand, the unimportant data are encoded with a minimum number of parities, which only supply the basic requirement of the recovery. When triple disks fail, the lost data can be reconstructed via a fuzzy manner.
 
@@ -65,11 +70,11 @@ We have the following contributions of this work,
 
 The rest of the paper is organized as follows. In Section \ref{RelatedWork}, we introduce related work and our motivation. 
 In Section \ref{ApCode}, the design of Approximate Code and its encoding and decoding process will be illustrated in detail. 
-Section \ref{Implementation} introduce the implementation of our design, and section \ref{ap-recovery} analysis the performance of approximate video storage.
+%Section \ref{Implementation} introduce the implementation of our design, and section \ref{ap-recovery} analysis the performance of approximate video storage.
 The evaluation is presented in Section \ref{evaluation} and the conclusion of our work is in Section \ref{Conclusion}. 
 
 \section{Related Work and Our Motivation}\label{RelatedWork}
-In this section, we introduce the background of Video frame recovery, existing solutions to reduce storage cost and the motivation of this paper.
+In this section, we introduce the background of video storage, existing solutions to reduce storage cost and the motivation of this paper.
 To facilitate the discussion, we summarize the symbols used in this paper in Table \ref{parameter}.
 
 \begin{table}[]
@@ -82,70 +87,95 @@ $k$ & the number of data nodes in an array \\ \hline
 $r$ & the number of local parity nodes in an array \\ \hline
 $n$ & the number of nodes in an array ($n=k+r$) \\ \hline
 $h$ & the number of arrays \\ \hline
-$s$ & the number of blocks in a node \\ \hline
+$g$ & the number of global parity nodes \\ \hline
 LP & local parity nodes \\ \hline
 GP & global parity nodes \\ \hline
 ID & important data \\ \hline
 UD & unimportant data \\ \hline
- &  \\ \hline
 \end{tabular}
 \end{table}
+
+
+\subsection{Basis of Video Storage}\label{video storage}
+For normal HD (resolution 1280$\times$720, 8-bit, 30 fps) video, the amount of raw video data in 1 minute is 4.63 GB, so video data is usually encoded by lossy algorithms before storage. 
+
+\subsubsection{Video coding}
+H.264 is one of the advanced algorithms for this type of work. This coding technique is widely used on platforms such as YouTube because it has higher compression ratio and lower complexity than its predecessor. For the HD video mentioned earlier, H.264 can reduce its size by about 10 times, only 443.27MB.
+
+H.264 classifies all frames into three different categories:
+\begin{enumerate}
+    \item I frame: A frame that does not depend on other frame data, which means it can be decoded independently of other frames.
+    \item P frame: A frame holds the changes compared to the previous frame, thus saving much space by leaving out redundant information.
+    \item B frame: A frame saves more space by utilizing the data of both the preceding and following frame.
+\end{enumerate}
+A GOP consists of multiple consecutive I, P, and B frames that are independent of frames in other GOPs to prevent bit error spread.
+%In other words, a P or B frame can only reference the ones inside the GOP which it belongs to, as shown in Figure \ref{H264-IPB}. 
+Therefore, within each GOP, the I frame has the highest importance because other frames rely on it for recovery; the importance of the P frame is second, and the B frame has the least importance. Based on this feature, a special program can be designed to distinguish the importance of video frames.
+
+\iffalse
+\begin{figure}[]
+\centering
+\includegraphics[width=0.45\textwidth]{photo/H264_IPB.pdf}
+\caption{A sample of GOPs in H.264}
+\label{H264-IPB}
+\end{figure}
+\fi
+
+\subsubsection{Video Frame Recovery}
+In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation [CITE][CITE].
+
+Video frame interpolation is one of the basic video processing techniques, an attempt to synthetically produce one or more intermediate video frames from existing ones.This is a technique that can model natural motion within a video, and generate frames according to this modelling.
+
+In deep learning methods, optical changes between the frames are trained in a supervised setup mapping two frames to their ground truth optical flow. Among all these, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the new state-of-the-art results in terms of PSNR and middlebury benchmark respectively.
+
 
 \subsection{Existing Erasure Codes}
 Reliability is a critical issue since disk failures are typical in storage systems. To improve the reliability of storage systems, several RAID forms (e.g., RAID-5, RAID-6, 3DFTs) and erasure codes are proposed by researchers.  Traditional erasure codes can be categorized into two classes, Maximum Distance Separable (MDS) codes and non-MDS codes. MDS codes aim to offer data protection with optimal storage efficiency. On the other hand, non-MDS codes improve the performance or reliability by consuming extra storage space.
 
 In the past two decades, several
-famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD
-code [1], RDP code [8], Blaum-Roth code[3], X-code [44], Liberation code [28], Liber8tion code [27], Cyclic [7] code, B-Code [45], Code-M [40], H-code [43], P-code [20] and HVcode [36], etc.
+famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD code [CITE], RDP code [CITE], Blaum-Roth code[CITE], X-code [CITE], Liberation code [CITE], Liber8tion code [CITE], Cyclic [CITE] code, B-Code [CITE], Code-M [CITE], H-code [CITE], P-code [CITE] and HVcode [CITE], etc.
 
-In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes [33], Cauchy-RS codes [4], STAR code [19], Triple-Star code [41], Triple-Parity code [9], HDD1 code [39], RSL-code [10], RL-code [11], and so on. Typical non-MDS codes contain WEAVER codes [14], HoVer
-codes [13], T-code [38], HDD2 code [39], Pyramid codes [18], Local Reconstruction Codes [16], Locally Repairable Codes [34], etc.
+In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes [CITE], Cauchy-RS codes [CITE], STAR code [CITE], Triple-Star code [CITE], Triple-Parity code [CITE], HDD1 code [CITE], RSL-code [CITE], RL-code [CITE], and so on. Typical non-MDS codes contain WEAVER codes [CITE], HoVer
+codes [CITE], T-code [CITE], HDD2 code [CITE], Pyramid codes [CITE], Local Reconstruction Codes [CITE], Locally Repairable Codes [CITE], etc.
 
 Several classic erasure codes are illustrated in detail as below,
 
 %从这里开始简单讲解几种RAID-6或三盘容错阵列的纠删码，如RS，EVENODD，RDP，STAR，LRC, H-Code，TIP-Code等，并且用编码图来说明（主要是实验中用到的几种编码）。
 
-\subsection{Video Frame Recovery}
-
-In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation.
-
-Video frame interpolation is one of the basic video processing techniques, an attempt to synthetically produce one or more intermediate video frames from existing ones, the simple case being the interpolation of one frame given two consecutive video frames. This is a technique that can model natural motion within a video, and generate frames according to this modelling. Artificially increasing the frame-rate of videos enables the possibility of frame recovery.
-
-
-In deep learning methods, optical changes between the frames are trained in a supervised setup mapping two frames to their ground truth optical flow. Among all these, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the new state-of-the-art results in terms of PSNR and middlebury benchmark respectively.
-
 \subsection{Approximate Storage}
-Storage techniques nowadays generally regard all information of the same importance, which causes significant costs in energy, disk drives and computing resources. But not all data need high-reliability storage for its backup. That is when the concept of approximate storage is introduced. Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
+%Storage techniques nowadays generally regard all information of the same importance, which causes significant costs in energy, disk drives and computing resources. But not all data need high-reliability storage for its backup. That is why the concept of approximate storage is introduced. 
+Approximate Storage is another way outside of traditional methods of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
 
 Use cases for approximate storage range from transient memory to embedded settings and mass storage cloud servers. Mapping approximate data onto blocks that have exhausted their hardware error correction resources, for example, to extend memory endurance. On embedded settings, it enables the reduction of the cost of accesses and preserve battery life to loosen the capacity constraints. \cite{sampson2014approximate} Here, in data-center-scale video database, approximate storage can provide multiple levels of fault tolerance for data of different importance, avoiding redundant backup for the less-important data, thus saving a significant amount of space.
 
 
 Approximate storage loosens the requirement of storage reliability by allowing quality loss of some specific data. Therefore, programmers can specify the importance of the data segments and assign them to different storage blocks. The critical data is still safe because they are stored and sufficiently backed up by expensive and highly reliable storage devices. Meanwhile, non-critical data is exposed to error, thus increasing storage density and saving cost.
 
-
-However, it is too naive to store data in approximate storage units indiscriminately. Related research \cite{guo2016high} shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs.
-Therefore, it is very important to distinguish the importance of video data. This can usually be done by an experienced expert or automatically by a program.
+%However, it is too naive to store data in approximate storage units indiscriminately. Related research \cite{guo2016high} shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs. Therefore, it is very important to distinguish the importance of video data. 
 
 \begin{table}[ht]
 \centering 
-\caption{Comparison of fault tolerance and storage overhead between approximate storage, EC and Approximate Code}\label{tab-AS-EC-AP}
+\caption{Comparison of storage overhead, reliability and performance between EC, Approximate Storage and Approximate Code. (``Appr.'' is short for ``Approximate'')}\label{tab-AS-EC-AP}
 \begin{tabular}{|c|c|c|c|c|}
 \hline
-\multicolumn{2}{|c|}{Schemes}  & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Realibilities & Performance \\ \hline\hline
+\multicolumn{2}{|c|}{Schemes} & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Reliability & Performance \\ \hline
 \multirow{2}{*}{EC} & RS & high & high & medium \\ \cline{2-5} 
-\multicolumn{1}{|c|}{} & RAID 6 & medium & medium & high \\ \hline
-\multicolumn{2}{|c|}{Ap-Storage}& low & low & high \\ \hline
-\multirow{2}{*}{Ap-Code}& Imp & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5} 
- & Unimp &  & medium & high \\ \hline
+ & RAID-6 & medium & medium & high \\ \hline
+\multicolumn{2}{|c|}{Appr. Storage} & low & low & high \\ \hline
+\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Appr.\\ Code\end{tabular}} & ID & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5} 
+ & UD &  & medium & high \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Our Motivation}
 Based on Table \ref{tab-AS-EC-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons. 
 
-First, existing erasure codes generally reach or exceed 3DFTs, and use more than 3 parity disks. However, the simultaneous damage of 3 disks is very rare, and the storage overhead paid for this is too large. Second, the existing erasure codes provide the same fault tolerance for all data without distinction, which results in the same reliability of important data that is sensitive to errors and data that is robust. Last but not least, the current approximate storage methods are unreliable since they are not designed to tolerate disk level failure.
+First, the overhead of existing 3DFTs erasure codes is too high.
+Second, the 2DFTs erasure codes sacrifice part of reliability, and the reliability of approximate storage schemes are much lower since they cannot tolerate disk-level failures.
+Finally, existing erasure codes provide the same fault tolerance for all data without distinction, resulting in the same reliability for error-sensitive data and robust data.
 
-To solve these problems, we propose a new erasure code called Approximation Code. It provides different fault tolerance for important and non-critical data to reduce storage overhead and protect critical data better.
+Based on these reasons, we propose a scheme for tiered video storage in a highly reliable environment, Approximate Code.
+Approximate code is an erasure code framework that uses tiered storage\cite{krish2014hats} \cite{wang2014balancing} \cite{zhang2010automated} \cite{udipi2012lot} and approximate storage strategies to separate an existing erasure codes into codes with different fault tolerances and apply them to important and unimportant data.
 
 \section{Approximate Code}\label{ApCode}
 In this section, we introduce Approximate Code and its properties through a few simple examples. 
@@ -159,7 +189,7 @@ Besides them, $3-r$ nodes are designed for global parity, and the total number o
 \subsection{Framework Design}
 The Approximate Code provides an erasure code framework for video storage in the cloud system. It uses an approximate strategy to split the erasure code scheme into two parts with different fault tolerances for application to important and minor data. It mainly includes two operations of coding segmentation and structure selection.
 
-\begin{figure}[h]
+\begin{figure}[]
 \centering
 \includegraphics[width=\linewidth]{photo/Framework.pdf}
 \caption{The framework of Approximate Code}
@@ -190,7 +220,7 @@ The construction of Approximate Code (4,1,4, \emph{Structure 1}) and Approximate
 
 %As mentioned before, if it is considered that the nodes from the same column belong to the same node, this example includes 4 arrays with 7 nodes; otherwise, it includes 4 arrays with 22 nodes.
 
-\begin{figure}[h]
+\begin{figure}[]
 \centering
 \includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
 \caption{A sample of Approximate Codes $(4,1,4)$ in \emph{Structure 1}, and Approximate Code $(3,1,3)$ in \emph{Structure 2}.
@@ -233,14 +263,14 @@ The local (horizontal) parity elements are calculated by the following encoding 
 When generating global parity blocks, the important data block, the local parity block, and the global parity block should be arranged as the encoding form of TIP-code. Figure \ref{fig-TIP} shows the coding method of diagonal and anti-diagonal parity blocks.
 Since the encoding process of important data blocks can be seen as RAID5 plus TIP-code, it is obvious that they achieve 3DFTs.
 
-\begin{figure}[h]
+\begin{figure}[]
 \centering
 \includegraphics[width=0.3\textwidth]{photo/AP-516.pdf}
 \caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
 \label{fig-ap-TIP}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[]
 
     \includegraphics[width=0.48\textwidth]{photo/RAID5-TIP.pdf}
 
@@ -254,14 +284,14 @@ EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension 
 $LP_{i,0}$ to $LP_{i,3}$ consist the horizontal parity nodes and $LP_{i,4}$ to $LP_{i,7}$ consist diagonal parity nodes for array $i$. So the form of every array fit the construction of EVENODD. Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. 
 The $GP$ is the anti-diagonal parity node and guarantee important data nodes form the construction method of STAR, which ensures the 3DFTs.
 
-\begin{figure}[h]
+\begin{figure}[]
 \centering
 \includegraphics[width=0.45\textwidth]{photo/AP-523.pdf}
 \caption{The XOR-based Approximate Code ($5,2,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
 \label{fig-ap-STAR}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[]
 
 \includegraphics[width = 0.98 \linewidth]{photo/EVENODD-STAR.pdf}
 
@@ -298,16 +328,16 @@ We analyze the nature of the Approximate Code from the following aspects, and th
     \item Flexibility. The implementation of the Approximate Code can be based on RS, XOR or a mixture of the two.
 \end{itemize}
 
-\begin{table}[ht]
+\begin{table}[]
 \centering 
 \caption{Comparison of storage overhead and fault tolerance between Ap-Code (short for Approximate Code), RS and several XOR-based codes.}\label{tab-AS-RS-AP}
 \begin{tabular}{|c|c|c|c|}
 \hline
-EC & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[c]{@{}c@{}}Fault \\ Tolerance\end{tabular} & \begin{tabular}[c]{@{}c@{}}Single Node\\Update Cost\end{tabular} \\ \hline
+EC & \begin{tabular}[]{@{}c@{}}Storage\\ Overhead\end{tabular} & \begin{tabular}[]{@{}c@{}}Fault \\ Tolerance\end{tabular} & \begin{tabular}[]{@{}c@{}}Single Node\\Update Cost\end{tabular} \\ \hline
 RS($k,r$) & $(k+r)/k$ & $r$ & r \\ \hline
 EVENODD($k,2$) & $(k+2)/k$ & 2 & 2 \\ \hline
 TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 & 3 \\ \hline
-\begin{tabular}[c]{@{}c@{}}Ap-Code\\ ($k,r,h$)\end{tabular} & $\frac {(k+r)h+3-r}{k \times h}$ & r to 3 & $r+\frac{3-r}{h}$ \\ \hline
+\begin{tabular}[]{@{}c@{}}Ap-Code\\ ($k,r,h$)\end{tabular} & $\frac {(k+r)h+3-r}{k \times h}$ & r to 3 & $r+\frac{3-r}{h}$ \\ \hline
 \end{tabular}
 \end{table}
 
@@ -399,7 +429,7 @@ Also, the encoding and recovery time consist of computation time, I/O time and t
 
 The environment of our experiments are shown in Table \ref{tab-platform}. We set a Hadoop system with one NameNode and 4 DataNodes. \textcolor{gray}{text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text }
 
-\begin{table}[ht]
+\begin{table}[]
 \begin{tabular}{|l|l|}
 \hline
 Description & DELL R730 Server \\ \hline
@@ -427,7 +457,7 @@ From the Figure xx a), we could find out that the AP code encodes largely faster
 
 
 
-\begin{figure*}[ht]
+\begin{figure*}[]
 \subfigure[AP and RS]{
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Example1Modi2.jpg}
 }
@@ -444,7 +474,7 @@ From the Figure xx a), we could find out that the AP code encodes largely faster
 \end{figure*}
 
 
-\begin{figure*}[ht]
+\begin{figure*}[]
 \subfigure[AP and RS]{
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Example5Modi1.jpg}
 }
@@ -461,7 +491,7 @@ From the Figure xx a), we could find out that the AP code encodes largely faster
 \end{figure*}
 
 
-\begin{figure*}[ht]
+\begin{figure*}[]
 \subfigure[AP and RS]{
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Example9.jpg}
 }
@@ -487,7 +517,7 @@ From the Figure xx a), we could find out that the AP code decodes faster than RS
 According to Figure xx, we see that RS ($5$, $3$) has the longest decoding time among these methods, while other methods decoding time in one disk have no significant difference.\par
 
 
-\begin{figure*}[ht]
+\begin{figure*}[]
 \subfigure[Encoding Time]{
     \includegraphics[width = 0.23\linewidth]{photo/experiment/BarEnT.jpg}
 }
