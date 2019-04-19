@@ -177,34 +177,35 @@ Finally, existing erasure codes provide the same fault tolerance for all data wi
 Based on these reasons, we propose a scheme for tiered video storage in a highly reliable environment, Approximate Code.
 Approximate code is an erasure code framework that uses tiered storage\cite{krish2014hats} \cite{wang2014balancing} \cite{zhang2010automated} \cite{udipi2012lot} and approximate storage strategies to separate an existing erasure codes into codes with different fault tolerances and apply them to important and unimportant data.
 
-\section{Approximate Code}\label{ApCode}
-In this section, we introduce Approximate Code and its properties through a few simple examples. 
-
-\subsection{Overview of Approximate Code}
-The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
-In a $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks, and we label the number of blocks in a node as $s$.
-Approximate Code are designed for $h$ arrays, therefore it includes $k*n$ data nodes and $r*h$ local parity nodes.
-Besides them, $3-r$ nodes are designed for global parity, and the total number of nodes in Approximate Code ($k,r,h$) is $$h*(k+r) +3-r$$
-
-\subsection{Framework Design}
-The Approximate Code provides an erasure code framework for video storage in the cloud system. It uses an approximate strategy to split the erasure code scheme into two parts with different fault tolerances for application to important and minor data. It mainly includes two operations of coding segmentation and structure selection.
-
-\begin{figure}[]
+\begin{figure*}[ht!]
 \centering
-\includegraphics[width=\linewidth]{photo/Framework.pdf}
+\includegraphics[width=\linewidth]{photo/Framework-v2.pdf}
 \caption{The framework of Approximate Code}
 \label{fig-framework}
-\end{figure}
+\end{figure*}
 
-\subsubsection{Code segmentation}
-For any type of input erasure code, we assume that its fault tolerance is $x$. The Approximate Code first splits its parity block into two parts: local and global parity. The former verifies all important and non-critical data, while the latter only verifies important data. Code segmentation are designed to ensure that local parities can tolerate any $r$ node failures, so the fault tolerance of non-critical data is $r$. For important data, the code segmentation ensures that the parity block of important data can be completely recombined into the original $x$DFTs erasure code scheme.
+\section{Approximate Code}\label{ApCode}
+In this section, we introduce the Approximate Code Framework and its properties through a few simple examples. 
 
-\subsubsection{Structure selection}
+\subsection{Overview of Approximate Code Framework}
+The Approximate Code mainly includes three operations: code segmentation, structure selection and code generation, as shown in Figure \ref{fig-framework}.
+
+\subsubsection{Code Segmentation}
+For any type of input erasure code, we assume that its fault tolerance is $x$. The Approximate Code first splits its parity block into two parts: local and global. The former verifies all important and non-critical data, while the latter only verifies important data. Code segmentation are designed to ensure that local parities can tolerate any $r$ node failures, so the fault tolerance of non-critical data is $r$. For important data, the code segmentation ensures that the parity block of important data can be completely recombined into the original $x$DFTs erasure code scheme.
+
+\subsubsection{Structure Selection}
 The Approximate Code framework then choose the Structure for the input erasure code.
 Approximate Code distribute important and unimportant data separately and mainly in two structure. As shown in Figure \ref{fig-ap-414}, in \emph{Structure 1}, important data occupies 1 of $s$ blocks in each node, and in \emph{Structure 2}, it occupies 1 of all $h$ data arrays.
 We define that $h=s$, so in \emph{Structure 1} and \emph{Structure 2},important data accounts for $1/h$ of all data.
 
 Figure \ref{fig-framework} shows the process of turning a code(assume that it is XXX) to Approximate XXX code. XXX-code has two parities chunks, the horizontal and the diagonal. Approximate Code framework define the former as local parity chunk and the latter as the global parity chunk. Then \emph{Structure 2} is selected and the Approximate XXX Code is a 16-node system.
+
+\subsubsection{Code Generation}
+
+The construction of the Approximate Code is determined by 3 parameters $k$, $r$ and $h$. 
+In a $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks, and we label the number of blocks in a node as $s$.
+Approximate Code are designed for $h$ arrays, therefore it includes $k*n$ data nodes and $r*h$ local parity nodes.
+Besides them, $3-r$ nodes are designed for global parity, and the total number of nodes in Approximate Code ($k,r,h$) is $$h*(k+r) +3-r$$
 
 In each array, $r$ nodes are local parity nodes, which is encoded by the rest $k$ data nodes in the array.
 In addition, there are another $3-r$ global nodes, which are calculated only by the important data blocks. It should be point out that the global parity nodes should be placed in different nodes and should be different from the data nodes. 
@@ -219,7 +220,7 @@ Approximate Code guarantees that for each array, the unimportant data can tolera
 The construction of Approximate Code (4,1,4, \emph{Structure 1}) and Approximate (3,1,3, \emph{Structure 2}) can be illustrated by Figure \ref{fig-ap-414},
 
 %As mentioned before, if it is considered that the nodes from the same column belong to the same node, this example includes 4 arrays with 7 nodes; otherwise, it includes 4 arrays with 22 nodes.
-
+\iffalse
 \begin{figure}[]
 \centering
 \includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
@@ -235,6 +236,7 @@ Data nodes are marked as $N_i$, important data are marked as water green, local 
 \caption{The generate matrix of RS-based Approximate Codes $(4,1,4)$, where $ID_i$ and $UD_i$ represent the important and unimportant data in $N_i$. $G_0$ and $G_1$ are the parity blocks corresponding to important data blocks.}
 \label{fig-ap-rs}
 \end{figure}
+\fi
 
 \subsection{RS-based Approximate Code}
 The construction of the Approximate Code based on RS is simple. In \emph{Structure 1}, the encoding unit is block. A horizontal RS parity is performed on the corresponding block in each node to generate a local parity block. At the same time, the important data blocks is horizontally verified by RS and generate multiple global check blocks.
