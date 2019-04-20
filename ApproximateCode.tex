@@ -47,16 +47,16 @@ To address this problem, in this paper, we propose Approximate Code, which is an
 \maketitle
 
 \section{Introduction}
-For typical cloud storage systems such as Windows Azure [CITE] and Amazon AWS [CITE], erasure coding is a popular technique to provide both high reliability and low monetary cost [CITE EC], where triple disk failure fault tolerant arrays (3DFTs) are widely used. Typical erasure codes can be divided into two categories, RS-based Codes [CITE] and XOR-based codes [CITE]. RS-based codes [CITE] are encoded according the Galois Field Computation in Reed Solomon Code [CITE], which allow flexible configuration and have a little higher computation cost. XOR-based codes [CITE] simplify the computation, but the scalability is a significant issue in previous literatures.
+For typical cloud storage systems such as Windows Azure \cite{calder2011windows} and Amazon AWS \cite{bermudez2013exploring}, erasure coding is a popular technique to provide both high reliability and low monetary cost \cite{EVENODD, RDP, BlaumRoth, XCode, CRS, TripleStar, TPtech, RSL}, where triple disk failure fault tolerant arrays (3DFTs) are widely used. Typical erasure codes can be divided into two categories, RS-based Codes \cite{RS} \cite{LRC} and XOR-based codes \cite{EVENODD, HCODE, STAR, tip}. RS-based codes are encoded according the Galois Field Computation in Reed Solomon Code \cite{RS}, which allow flexible configuration and have a little higher computation cost. XOR-based codes simplify the computation, but the scalability is a significant issue in previous literatures.
 
 With the increasing demand on higher resolution and frame rate for video data, massive storage devices are highly desired in cloud storage systems, which makes data centers much bigger.
 Therefore, in this paper, we set out to answer the following question,
 \textbf{In a cloud storage system, how to efficiently store the tremendous video data in 3DFTs?}
 
 
-To reduce the storage cost in cloud storage systems, a feasible solution is approximate storage. Approximate storage exposes unimportant data to errors, saving the overhead of redundant backups [CITE APPROXIMATE STORAGE], thus the data reliability cannot be guaranteed. 
-Another solution is using disk arrays like RAID-5 or RAID-6 [CITE RAID], but the capability of fault tolerance would be sacrificed.
-Data compression\footnote{We do not discuss video compression technology much in this paper because it is an application layer algorithm and can be used with our scheme.} is also a common strategy for reducing storage overhead \cite{ziv1977universal} \cite{ziv1978compression} \cite{deutsch1996deflate}. However, the compression and decompression process results in very large computational overhead, high recovery speed and high response time, which is not suitable for video applications.
+To reduce the storage cost in cloud storage systems, a feasible solution is approximate storage. Approximate storage exposes unimportant data to errors, saving the overhead of redundant backups \cite{niklaus2018context, sampson2014approximate} , thus the data reliability cannot be guaranteed.
+Another solution is using disk arrays like RAID-5 or RAID-6 \cite{RAID}, but the capability of fault tolerance would be sacrificed.
+Data compression\footnote{We do not discuss video compression technology much in this paper because it is an application layer algorithm and can be used with our scheme.} is also a common strategy for reducing storage overhead \cite{ziv1977universal, ziv1978compression, deutsch1996deflate}. However, the compression and decompression process results in very large computational overhead, high recovery speed and high response time, which is not suitable for video applications.
 Therefore, existing solutions cannot provide low storage cost and high reliability simultaneously.
 
 To address the above problem, in this paper, we propose Approximate Code, which is an erasure coding framework to provide comprehensive solution for video data storage in cloud systems. The key idea of Approximate Code is treating the important/unimportant data in different ways. For important data, we add additional parities to provide high capability of fault tolerance. On the other hand, the unimportant data are encoded with a minimum number of parities, which only supply the basic requirement of the recovery. When triple disks fail, the lost data can be reconstructed via a fuzzy manner.
@@ -122,23 +122,46 @@ Therefore, within each GOP, the I frame has the highest importance because other
 \fi
 
 \subsubsection{Video Frame Recovery}
-In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation [CITE][CITE].
+In the circumstance of video approximate storage, it's common to lose some frames and leave the video incomplete. However, the lost frames may still be recoverable with the benefit of nowadays powerful deep learning techniques. One of them is named video frame interpolation \cite{meyer2015phase, niklaus2018context}.
 
 Video frame interpolation is one of the basic video processing techniques, an attempt to synthetically produce one or more intermediate video frames from existing ones.This is a technique that can model natural motion within a video, and generate frames according to this modelling.
 
 In deep learning methods, optical changes between the frames are trained in a supervised setup mapping two frames to their ground truth optical flow. Among all these, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the new state-of-the-art results in terms of PSNR and middlebury benchmark respectively.
 
 
+
 \subsection{Existing Erasure Codes}
 Reliability is a critical issue since disk failures are typical in storage systems. To improve the reliability of storage systems, several RAID forms (e.g., RAID-5, RAID-6, 3DFTs) and erasure codes are proposed by researchers.  Traditional erasure codes can be categorized into two classes, Maximum Distance Separable (MDS) codes and non-MDS codes. MDS codes aim to offer data protection with optimal storage efficiency. On the other hand, non-MDS codes improve the performance or reliability by consuming extra storage space.
 
-In the past two decades, several
-famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD code [CITE], RDP code [CITE], Blaum-Roth code[CITE], X-code [CITE], Liberation code [CITE], Liber8tion code [CITE], Cyclic [CITE] code, B-Code [CITE], Code-M [CITE], H-code [CITE], P-code [CITE] and HVcode [CITE], etc.
+In the past two decades, several famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD code \cite{EVENODD}, RDP code \cite{RDP}, Blaum-Roth code\cite{BlaumRoth}, X-code \cite{XCode}, Liberation code \cite{Liberation}, Liber8tion code \cite{Liber8tion}, Cyclic \cite {Cyclic} code, B-Code \cite{BCode}, Code-M \cite{Code-M}, H-code \cite{hcode}, P-code \cite{PCode} and HVcode \cite{HVCode}, etc.
 
-In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes [CITE], Cauchy-RS codes [CITE], STAR code [CITE], Triple-Star code [CITE], Triple-Parity code [CITE], HDD1 code [CITE], RSL-code [CITE], RL-code [CITE], and so on. Typical non-MDS codes contain WEAVER codes [CITE], HoVer
-codes [CITE], T-code [CITE], HDD2 code [CITE], Pyramid codes [CITE], Local Reconstruction Codes [CITE], Locally Repairable Codes [CITE], etc.
+In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes \cite{RS}, Cauchy-RS codes \cite{CRS}, STAR code \cite{STAR}, Triple-Star code \cite{TripleStar}, Triple-Parity code \cite{TPtech}, HDD1 code \cite{HDD}, RSL-code \cite{RSL}, RL-code \cite{RL}, and so on. Typical non-MDS codes contain WEAVER codes \cite{WEAVER}, HoVercodes \cite{HoVer}, T-code \cite{TCode}, HDD2 code \cite{HDD}, Pyramid codes \cite{Pyramid}, Local Reconstruction Codes \cite{LRC}, Locally Repairable Codes \cite{XORing}, etc.
 
-Several classic erasure codes are illustrated in detail as below,
+
+Reed Solomon Code \cite{RS} (RS code) is one kind of classic MDS codes, but its scheme requires additions and multiplications over finite fields and results in high complexity in decoding and updating. Several attempts have been made to address this issue. Local Construction Code (LRC) \cite{LRC} is one of these attempts which succeeds in reducing the bandwidth and I/Os required for repair reads at the expense of higher storage overhead.
+
+Unlike the RS code basing on additions and multiplications, another type of erasure codes is XOR-based codes and some are used in RAID (Redundant Arrays of Independent Drives) structures. This type of codes uses purely XOR operations, therefore showing a great advantage on encoding/decoding speed. XOR-based codes like EVENODD \cite{EVENODD} and H-code \cite{hcode} can tolerate 2 disk failures (EVENODD can even be designed to tolerate 3 disk failure), and they can be directly applied in RAID structures. More sophisticated ones like STAR code \cite{STAR} and TIP code \cite{tip} can tolerate 3 disk failures.
+
+
+STAR code \cite{STAR} is an extension of the double-erasure-correcting EVENODD \cite{EVENODD} code, and a modification of the generalized triple-erasure-correcting EVENODD code. It employs a novice diagonal redundancy as shown in Figure \ref{fig:star-enc}.
+\begin{figure}[!ht]
+ \centering
+ \subfigure[Horizontal parity coding (e.g., $C_{0,5} = C_{0,0} \oplus C_{0,1} \oplus C_{0,2} \oplus C_{0,3} \oplus C_{0,4}$).]{
+  \includegraphics[width=0.20\textwidth]{photo/star-hori.pdf}
+ }
+ \hspace{5pt}
+ \subfigure[Diagonal parity coding (e.g., $S_1 = C_{3,1} \oplus C_{2,2} \oplus C_{1,3} \oplus C_{0,4}$ and $C_{0,6} = C_{0,0} \oplus C_{3,2} \oplus C_{2,3} \oplus C_{1,4} \oplus S_1$).]{
+  \includegraphics[width=0.20\textwidth]{photo/star-diag.pdf}
+ } \\
+ \subfigure[Anti-diagonal parity coding (e.g., $S_2 = C_{0,1} \oplus C_{1,2} \oplus C_{2,3} \oplus C_{3,4}$ and $C_{0,7} = C_{0,0} \oplus C_{1,1} \oplus C_{2,2} \oplus C_{3,3} \oplus S_2$).]{
+  \includegraphics[width=0.20\textwidth]{photo/star-anti.pdf}
+ }
+ \hspace{5pt}
+ \caption{Encoding of STAR code ($p = 5$).}
+ \label{fig:star-enc}
+\end{figure}
+
+TIP-code \cite{tip} is a solution for p or p+1 disks, where p is a prime number. Compared to STAR, Tip's input of the diagonal and anti-diagonal parity is modified so they are evenly distributed among all the data blocks. This minor modification has enabled TIP-code to achieve optimal update complexity.
 
 %从这里开始简单讲解几种RAID-6或三盘容错阵列的纠删码，如RS，EVENODD，RDP，STAR，LRC, H-Code，TIP-Code等，并且用编码图来说明（主要是实验中用到的几种编码）。
 
