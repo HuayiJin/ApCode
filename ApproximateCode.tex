@@ -141,7 +141,7 @@ In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-
 
 Reed Solomon Code \cite{RS} (RS code) is one kind of classic MDS codes, but its scheme requires additions and multiplications over finite fields and results in high complexity in decoding and updating. Several attempts have been made to address this issue. Local Construction Code (LRC) \cite{LRC} is one of these attempts which succeeds in reducing the bandwidth and I/Os required for repair reads at the expense of higher storage overhead.
 
-Unlike the RS code basing on additions and multiplications, another type of erasure codes is XOR-based codes and some are used in RAID (Redundant Arrays of Independent Drives) structures. This type of codes uses purely XOR operations, therefore showing a great advantage on encoding/decoding speed. XOR-based codes like EVENODD \cite{EVENODD} and H-code \cite{hcode} can tolerate 2 disk failures (EVENODD can even be designed to tolerate 3 disk failure), and they can be directly applied in RAID structures. More sophisticated ones like STAR code \cite{STAR} and TIP code \cite{tip} can tolerate 3 disk failures.
+Unlike the RS code basing on additions and multiplications, another type of erasure codes is XOR-based codes and some are used in RAID (Redundant Arrays of Independent Drives) structures. This type of codes uses purely XOR operations, therefore showing a great advantage on encoding/decoding speed. Typical XOR-based MDS codes are EVENODD code \cite{EVENODD}, H-code \cite{hcode}, STAR code \cite{STAR} and TIP-code \cite{tip}. Some of them will be discussed in detail below.
 
 
 STAR code \cite{STAR} is an extension of the double-erasure-correcting EVENODD \cite{EVENODD} code, and a modification of the generalized triple-erasure-correcting EVENODD code. It employs a novice diagonal redundancy as shown in Figure \ref{fig:star-enc}.
@@ -195,10 +195,10 @@ Approximate storage loosens the requirement of storage reliability by allowing q
 Based on Table \ref{tab-AS-EC-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons. 
 
 First, the overhead of existing 3DFTs erasure codes is too high.
-Second, the 2DFTs erasure codes sacrifice part of reliability, and the reliability of approximate storage schemes are much lower since they cannot tolerate disk-level failures.
+Secondly, the 2DFTs erasure codes sacrifice part of the necessary reliability, and that of approximate storage schemes is much lower since they cannot tolerate disk-level failures.
 Finally, existing erasure codes provide the same fault tolerance for all data without distinction, resulting in the same reliability for error-sensitive data and robust data.
 
-Based on these reasons, we propose a scheme for tiered video storage in a highly reliable environment, Approximate Code.
+Based on these reasons, we propose a scheme for tiered video storage in a highly reliable environment, named Approximate Code.
 Approximate code is an erasure code framework that uses tiered storage\cite{krish2014hats} \cite{wang2014balancing} \cite{zhang2010automated} \cite{udipi2012lot} and approximate storage strategies to separate an existing erasure codes into codes with different fault tolerances and apply them to important and unimportant data.
 
 \begin{figure*}[ht!]
@@ -225,7 +225,7 @@ There are two main structures that distribute important and unimportant data in 
 As shown in Figure \ref{fig-framework}, in \emph{Structure I}, important data occupies 1 block in each node, and in \emph{Structure II}, it occupies 1 data arrays.
 We specify that in \emph{Structure I}, the ratio of important data to each node is $1/h$, thereby ensuring that the number of important data in both \emph{Structure I} and \emph{Structure II} just fills up $k$ nodes.
 
-Since \emph{Structure I} distributes important data across each node, it guarantees a more balanced load. \emph{Structure II} concentrates important data into an array, and provides greater reliability for important data. A detailed analysis of this will be presented in \ref{evaluation}.
+Since \emph{Structure I} distributes important data across each node, it guarantees a more balanced load. \emph{Structure II} aggregates important data into an array, and provides greater reliability for important data. A detailed analysis of this will be presented in \ref{evaluation}.
 
 \subsubsection{Code Generation}
 After code segmentation and structure selection, the Approximate Code Framework generates an approximate form of the input erasure code.
@@ -233,7 +233,7 @@ After code segmentation and structure selection, the Approximate Code Framework 
 The construction of the Approximate Code is determined by 5 parameters $k$, $r$, $g$, $h$ and $Structure$. 
 We define the naming rules of the output Approximate Code as \textbf{``Approximate XXX Code ($k,r,g,h, Structure$)''}, where ``XXX'' is the name of input erasure code. Paremeter $Structure$ is I or II and it can be omitted when not focusing on the specific construction.
 
-In a $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks.
+In an $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks.
 Approximate Code are designed for $h$ arrays, therefore it includes $k*h$ data nodes and $r*h$ local parity nodes.
 Besides them, $g$ nodes are designed for global parity, which are calculated only by the important data blocks, so the total number of nodes in Approximate Code ($k,r,g,h$) is 
 $h*(k+r) + g$.
@@ -285,9 +285,9 @@ Since we mainly provide 3DFTs for important data, we prefer to construct Approxi
 \subsubsection{Approximate STAR Code}
 Figure \ref{fig-ap-5214} shows the construction of Approximate STAR Code (5,2,1,4,II).
 
-As introduced in \ref{existEC}, STAR Code \cite{huang2008star} has 3 parity chunks and it is a tipical 3DFTs XOR-based erasure code.
+As introduced in \ref{existEC}, STAR Code \cite{STAR} has 3 parity chunks and it is a tipical 3DFTs XOR-based erasure code.
 %We usually split the XOR-based code into a horizontal parity (local) and (anti-)diagonal parities (global), whereas the STAR feature allows it to support another segmentation method.
-Since STAR is a direct extension of EVENODD\cite{blaum1995evenodd}, that is to say, the STAR that removes the anti-diagonal parity is the typical RAID-6 code EVENODD. As shown in Figure \ref{fig-star}, in this case, the horizontal and diagonal parity are used as local parities while the anti-diagonal parity is defined as global parity.
+Since STAR is a direct extension of EVENODD\cite{EVENODD}, that is to say, the STAR that removes the anti-diagonal parity is the typical RAID-6 code EVENODD. As shown in Figure \ref{fig-star}, in this case, the horizontal and diagonal parity are used as local parities while the anti-diagonal parity is defined as global parity.
 According to the construction requirements of STAR, each node is divided into 4 blocks.
 
 Briefly, Approximate STAR Code (5,2,1,4,II) can be thought of as important data encoded by the full STAR, while unimportant data is encoded by a part of STAR, EVENODD. It is plain to see that important data can tolerate any 3 node failures while unimportant data can tolerate any 2 node failures.
@@ -296,7 +296,7 @@ Briefly, Approximate STAR Code (5,2,1,4,II) can be thought of as important data 
 
 optimal update complexity.
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure I}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure I}, based on RAID5 and TIP-code \cite{tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
