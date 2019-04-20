@@ -296,7 +296,7 @@ Briefly, Approximate STAR Code (5,2,1,4,II) can be thought of as important data 
 
 optimal update complexity.
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure I}, based on RAID5 and TIP-code \cite{tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
+Figure \ref{fig-ap-TIP} is a typical construction of Approximate Code ($5,1,6$) in \emph{Structure I}, based on RAID5 and TIP-code \cite{tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -397,10 +397,10 @@ TIP-code/STAR($k,3$) & $(k+r)/k$ & 3 & 3 \\ \hline
 \label{fig-implementation}
 \end{figure}
 
-Compared with the traditional scheme that does not consider the meaning of the upper array data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate array between the upper array application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage array, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
+Compared to the traditional scheme that does not consider the meaning of the upper array data, the Approximate Code pays attention to the difference of the importance of the data, so an intermediate array between the upper array application and the underlying distributed storage system is necessary to preprocess the data. We call it the approximate storage array, which include 3 parts: data identification and allocation, encoding and decoding process of Approximate Code and the video fuzzification and recovery.
 
 \subsubsection{Data Segmentation and Distribution module}
-The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important part) and other data. (unimportant part).
+The data segmentation module splits the video file stream into multiple data segments and automatically discriminates the important data. A natural approach is to follow the GOP segmentation. According to the \ref{video storage}, the GOP of the encoded video starts with an I frame, and all the data in that GOP depends on it for decoding, so we define it as important data and divide the GOP into I frames (important part) and other data (unimportant part).
 
 The data distribution module distributes important data and unimportant data in different blocks and records the location. This location information is also defined as important data. This module is also responsible for analyzing the proportion of important data and unimportant data in the data stream to select the most appropriate coding parameter configuration to ensure fault tolerance and high storage efficiency of important data.
 
@@ -434,7 +434,7 @@ In the approximate recovery mode, since unimportant data suffers unrecoverable l
 
 \subsection{Experimental Setup}
 \subsubsection{Coding Algorithm} 
-We evaluate the condition of the video of H.264 encoding [] under approximate recovery. Mainly because H.264 is an advanced video coding algorithm widely used at present, at the same time, the common advanced coding algorithms have similar coding processes.
+Since H.264 is an advanced video coding algorithm widely used at present, and in the meanwhile the common advanced coding algorithms have similar coding processes, We evaluate the condition of the video in H.264 encoding [] under approximate recovery.
 
 \subsubsection{Data Set}
 We choose 100 videos from xxx data set[]. All videos are stored in ``.mp4'' format at 1280*720 HD resolution.
