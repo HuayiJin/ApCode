@@ -130,7 +130,7 @@ Video frame interpolation is one of the basic video processing techniques, an at
 In deep learning methods, optical changes between the frames are trained in a supervised setup mapping two frames to their ground truth optical flow. Among all these, a multi-scale network\cite{van2017frame} based on recent advances in spatial transformers and composite perceptual losses as well as a context-aware Synthesis approach\cite{niklaus2018context} have so far produced the new state-of-the-art results in terms of PSNR and middlebury benchmark respectively.
 
 
-\subsection{Existing Erasure Codes}
+\subsection{Existing Erasure Codes}\label{existEC}
 Reliability is a critical issue since disk failures are typical in storage systems. To improve the reliability of storage systems, several RAID forms (e.g., RAID-5, RAID-6, 3DFTs) and erasure codes are proposed by researchers.  Traditional erasure codes can be categorized into two classes, Maximum Distance Separable (MDS) codes and non-MDS codes. MDS codes aim to offer data protection with optimal storage efficiency. On the other hand, non-MDS codes improve the performance or reliability by consuming extra storage space.
 
 In the past two decades, several
@@ -199,18 +199,20 @@ In the example, a 3DFTs erasure code with 4 data chunks and 3 parity chunks is i
 \subsubsection{Structure Selection}
 The Approximate Code framework then choose the structure for the input erasure code.
 There are two main structures that distribute important and unimportant data in different ways.
-As shown in Figure \ref{fig-framework}, in \emph{Structure 1}, important data occupies 1 block in each node, and in \emph{Structure 2}, it occupies 1 data arrays.
-We specify that in \emph{Structure 1}, the ratio of important data to each node is $1/h$, thereby ensuring that the number of important data in both \emph{Structure 1} and \emph{Structure 2} just fills up $k$ nodes.
+As shown in Figure \ref{fig-framework}, in \emph{Structure I}, important data occupies 1 block in each node, and in \emph{Structure II}, it occupies 1 data arrays.
+We specify that in \emph{Structure I}, the ratio of important data to each node is $1/h$, thereby ensuring that the number of important data in both \emph{Structure I} and \emph{Structure II} just fills up $k$ nodes.
 
-Since \emph{Structure 1} distributes important data across each node, it guarantees a more balanced load. \emph{Structure 2} concentrates important data into an array, and provides greater reliability for important data. A detailed analysis of this will be presented in \ref{evaluation}.
+Since \emph{Structure I} distributes important data across each node, it guarantees a more balanced load. \emph{Structure II} concentrates important data into an array, and provides greater reliability for important data. A detailed analysis of this will be presented in \ref{evaluation}.
 
 \subsubsection{Code Generation}
 After code segmentation and structure selection, the Approximate Code Framework generates an approximate form of the input erasure code.
 
-The construction of the Approximate Code is determined by 4 parameters $k$, $r$, $g$ and $h$. 
+The construction of the Approximate Code is determined by 5 parameters $k$, $r$, $g$, $h$ and $Structure$. 
+We define the naming rules of the output Approximate Code as \textbf{``Approximate XXX Code ($k,r,g,h, Structure$)''}, where ``XXX'' is the name of input erasure code. Paremeter $Structure$ is I or II and it can be omitted when not focusing on the specific construction.
+
 In a $n$-node array, $k$ of them are data nodes and $r=n-k$ nodes are for local parity, where each node can be divided into multiple blocks.
 Approximate Code are designed for $h$ arrays, therefore it includes $k*h$ data nodes and $r*h$ local parity nodes.
-Besides them, $g$ nodes are designed for global parity, which are calculated only by the important data blocks. The total number of nodes in Approximate Code ($k,r,g,h$) is 
+Besides them, $g$ nodes are designed for global parity, which are calculated only by the important data blocks, so the total number of nodes in Approximate Code ($k,r,g,h$) is 
 $h*(k+r) + g$.
 
 Approximate Code guarantees that the unimportant data can tolerate any $r$ node failures and the important data can tolerate any $r+g$ node failures.
@@ -220,7 +222,7 @@ Since the 3DFTs is a tipical configuration, we mainly discuss the situation of $
 \begin{figure}[]
 \centering
 \includegraphics[width=\linewidth]{photo/AP-kmha-v7.pdf}
-\caption{A sample of Approximate Codes $(4,1,4)$ in \emph{Structure 1}, and Approximate Code $(3,1,3)$ in \emph{Structure 2}.
+\caption{A sample of Approximate Codes $(4,1,4)$ in \emph{Structure I}, and Approximate Code $(3,1,3)$ in \emph{Structure II}.
 Data nodes are marked as $N_i$, important data are marked as water green, local parity nodes are marked as orange and global parity nodes are marked as red.
 }
 \label{fig-ap-414}
@@ -237,38 +239,41 @@ Data nodes are marked as $N_i$, important data are marked as water green, local 
 \subsection{Approximate RS Code}
 For RS(k,p), it can be seen that it provides $p$ independent horizontal parity nodes for $k$ data nodes. Therefore, the code segmentation for RS is arbitrary, that is, it supports any $r=p-g(0<g<p)$. RS also supports both two structures. 
 
-For the situation shown in Figure \ref{fig-framework}, we consider the input erasure code as RS(4,3). It is divided into two local parities and one global parities with the \emph{Structure 2} and it generate Approximate RS Code (4,2,1,3,\emph{Structure 2}).
+For the situation shown in Figure \ref{fig-framework}, we consider the input erasure code as RS(4,3). It is divided into two local parities and one global parities with the \emph{Structure II} and it generate Approximate RS Code (4,2,1,3,II).
 As a result, the unimportant data constitutes RS(4,2), and the important data constitutes RS(4,3).
 
 
 \subsection{XOR-based Approximate Code}
 Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several XOR-based codes to provide faster encoding and reconstruction speed than RS. This section introduce two tipical construction of XOR-based Approximate Code, Approximate STAR Code and Approximate TIP Code.
 
-\subsubsection{Approximate STAR Code}
-Figure \ref{fig-ap-STAR} shows the construction of Approximate STAR Code ($5,2,1,3$) in \emph{Structure 2}
 
-based on EVENODD \cite{blaum1995evenodd} and STAR \cite{huang2008star}. 
-EVENODD is a tipical RAID6 erasure code scheme, while STAR is a 3DFTs extension scheme of EVENODD. In this case, important data blocks are distributed in array 0, while unimportant data blocks occupy the rest arrays. 
-$LP_{i,0}$ to $LP_{i,3}$ consist the horizontal parity nodes and $LP_{i,4}$ to $LP_{i,7}$ consist diagonal parity nodes for array $i$. So the form of every array fit the construction of EVENODD. Because the STAR code is constructed just by adding a reverse parity chain to the EVENODD code. 
-The $GP$ is the anti-diagonal parity node and guarantee important data nodes form the construction method of STAR, which ensures the 3DFTs.
-
-\begin{figure}[]
+\begin{figure}[ht]
 \centering
-\includegraphics[width=0.6\linewidth]{photo/AP-523.pdf}
-\caption{The XOR-based Approximate Code ($5,2,4$), constructed based on EVENODD and STAR code. $LP$ represent the local parity and $GP$ represent the global parity.}
-\label{fig-ap-STAR}
+\includegraphics[width=0.8\linewidth]{photo/AP-5214.pdf}
+\caption{Construction of Approximate STAR Code (5,2,1,4,II)}
+\label{fig-ap-5214}
 \end{figure}
 
-\begin{figure}[]
-
-\includegraphics[width =\linewidth]{photo/EVENODD-STAR.pdf}
-
-\caption{EVENODD only consist horizontal and diagonaol parity, while STAR add the anti-diagonal parity node based on EVENODD and can tolerate 3 device failures.}\label{fig-star}
+\begin{figure}[ht]
+\includegraphics[width =0.8\linewidth]{photo/EVENODD-STAR-v2.pdf}
+\caption{EVENODD only consist horizontal and diagonal parity, while STAR add the anti-diagonal parity node based on EVENODD and can tolerate 3 device failures.}\label{fig-star}
 \end{figure}
+
+\subsubsection{Approximate STAR Code}
+Figure \ref{fig-ap-5214} shows the construction of Approximate STAR Code (5,2,1,4,II).
+
+As introduced in \ref{existEC}, STAR Code \cite{huang2008star} has 3 parity chunks and it is a tipical 3DFTs XOR-based erasure code.
+%We usually split the XOR-based code into a horizontal parity (local) and (anti-)diagonal parities (global), whereas the STAR feature allows it to support another segmentation method.
+Since STAR is a direct extension of EVENODD\cite{blaum1995evenodd}, that is to say, the STAR that removes the anti-diagonal parity is the typical RAID-6 code EVENODD. As shown in Figure \ref{fig-star}, in this case, the horizontal and diagonal parity are used as local parities while the anti-diagonal parity is defined as global parity.
+According to the construction requirements of STAR, each node is divided into 4 blocks.
+
+Briefly, Approximate STAR Code (5,2,1,4,II) can be thought of as important data encoded by the full STAR, while unimportant data is encoded by a part of STAR, EVENODD. It is plain to see that important data can tolerate any 3 node failures while unimportant data can tolerate any 2 node failures.
 
 \subsubsection{Approximate TIP Code}
 
-Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure 1}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
+optimal update complexity.
+
+Figure \ref{fig-ap-TIP} is a tipical construction of Approximate Code ($5,1,6$) in \emph{Structure I}, based on RAID5 and TIP-code \cite{zhang2015tip}. RAID5 tolerate one node failure while TIP-code is an XOR-based 3DFTs code. In each array, local parity blocks provide horizontal XOR parity, and between arrays, global parity provide diagonal parity and anti-diagonal parity. 
 
 The local (horizontal) parity elements are calculated by the following encoding equations.
 \begin{align}
@@ -279,41 +284,63 @@ The local (horizontal) parity elements are calculated by the following encoding 
 When generating global parity blocks, the important data block, the local parity block, and the global parity block should be arranged as the encoding form of TIP-code. Figure \ref{fig-TIP} shows the coding method of diagonal and anti-diagonal parity blocks.
 Since the encoding process of important data blocks can be seen as RAID5 plus TIP-code, it is obvious that they achieve 3DFTs.
 
-\begin{figure}[]
+\begin{figure}[ht]
 \centering
 \includegraphics[width=0.3\textwidth]{photo/AP-516.pdf}
-\caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure 1}), constructed based on RAID5 and TIP-code.}
+\caption{The XOR-based Approximate Code ($5,1,6$, \emph{Structure I}), constructed based on RAID5 and TIP-code.}
 \label{fig-ap-TIP}
 \end{figure}
 
-\begin{figure}[]
+\begin{figure}[ht]
+\subfigure[]{
+\begin{minipage}[t]{0.45\linewidth}
+\centering
+\includegraphics[width=0.8\linewidth]{photo/RAID5.pdf}        
+\end{minipage}
+}
+\subfigure[]{
+\begin{minipage}[t]{0.45\linewidth}
+\centering
+\includegraphics[width=0.8\linewidth]{photo/legend.pdf}        
+\end{minipage}
+}
 
-    \includegraphics[width=0.48\textwidth]{photo/RAID5-TIP.pdf}
-
+\subfigure[]{
+\begin{minipage}[t]{0.45\linewidth}
+\centering
+\includegraphics[width=\linewidth]{photo/TIP-di.pdf}        
+\end{minipage}
+}
+\subfigure[]{
+\begin{minipage}[t]{0.45\linewidth}
+\centering
+\includegraphics[width=\linewidth]{photo/TIP-an.pdf}        
+\end{minipage}
+}
 \caption{Encoding pf TIP-code}
 \label{fig-TIP}
 \end{figure}
 
 \iffalse
 \subsection{Case Study}
-This section describe the decoding methods in different cases of node failure based on \emph{Structure 1} and \emph{Structure 2}.
+This section describe the decoding methods in different cases of node failure based on \emph{Structure I} and \emph{Structure II}.
 
 \subsubsection{Reconstruction cases in Structure 1}
-Under \emph{Structure 1}, important data and unimportant data are distributed in the same nodes, so they suffer the same risk of device failures. 
+Under \emph{Structure I}, important data and unimportant data are distributed in the same nodes, so they suffer the same risk of device failures. 
 When $r$ or less nodes fail, all the data can be reconstructed by local parity.
 When the number of failed nodes is over $r$ but no more than 3, the Approximate Code conduct approximate recovery, in which the important data are recovered by global parity nodes and the damaged video data will be processed by the video recovery and fuzzy algorithm.
 
 \subsubsection{Reconstruction cases in Structure 2}
-Under \emph{Structure 2}, we consider important and unimportant data nodes separately.
+Under \emph{Structure II}, we consider important and unimportant data nodes separately.
 
-For node level failure, the fault tolerance of \emph{Structure 2} is exactly as \emph{Structure 1},When it comes to node level failures, \emph{Structure 2} can tolerate more unimportant data node failures than \emph{Structure 1}. The parity chain of important data does not pass through the unimportant data, so the damage of these nodes does not affect the recovery of important data.
+For node level failure, the fault tolerance of \emph{Structure II} is exactly as \emph{Structure I},When it comes to node level failures, \emph{Structure II} can tolerate more unimportant data node failures than \emph{Structure I}. The parity chain of important data does not pass through the unimportant data, so the damage of these nodes does not affect the recovery of important data.
 
 ///////////////////////
 Under the random probability model of nodes, the probability of failure of the Approximate Code under 4 node damage is
 \begin{equation}
     P_{failure} = \frac{C_{k+3}^4}{C_{(k+r)h+3-r}^4}
 \end{equation}
-which is the 4 node failure situation in $k$ important data nodes and 3 important parity nodes. For example, the failure situation of Approximate Code ($4,1,4$, \emph{Structure 2}) probability is 0.478\%.
+which is the 4 node failure situation in $k$ important data nodes and 3 important parity nodes. For example, the failure situation of Approximate Code ($4,1,4$, \emph{Structure II}) probability is 0.478\%.
 \fi
 
 \subsection{Properties of Approximate Code}\label{properties}
