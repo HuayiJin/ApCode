@@ -1673,58 +1673,58 @@ Computing Machinery]
        \fi
      \fi
   \fi
-  \if@ACM@nonacm\else\footnotetextcopyrightpermission{%
-    \if@ACM@authordraft
-        \raisebox{-2ex}[\z@][\z@]{\makebox[0pt][l]{\large\bfseries
-            Unpublished working draft. Not for distribution.}}%
-       \color[gray]{0.9}%
-    \fi
-    \parindent\z@\parskip0.1\baselineskip
-    \if@ACM@authorversion\else
-      \if@printpermission\@copyrightpermission\par\fi
-    \fi
-    \if@ACM@manuscript\else
-       \if@ACM@journal\else % Print the conference information
-         {\itshape \acmConference@shortname, \acmConference@date, \acmConference@venue}\par
-       \fi
-    \fi
-    \if@printcopyright
-      \copyright\ \@copyrightyear\ \@copyrightowner\\
-    \else
-      \@copyrightyear.\
-    \fi
-    \if@ACM@manuscript
-      Manuscript submitted to ACM\\
-    \else
-      \if@ACM@authorversion
-          This is the author's version of the work. It is posted here for
-          your personal use. Not for redistribution. The definitive Version
-          of Record was published in
-          \if@ACM@journal
-            \emph{\@journalName}%
-          \else
-            \emph{\@acmBooktitle}%
-          \fi
-          \ifx\@acmDOI\@empty
-          .
-          \else
-            , \@formatdoi{\@acmDOI}.
-          \fi\\
-        \else
-          \if@ACM@nonacm\else
-            \if@ACM@journal
-              \@permissionCodeOne/\@acmYear/\@acmMonth-ART\@acmArticle
-              \ifx\@acmPrice\@empty\else\ \$\@acmPrice\fi\\
-              \@formatdoi{\@acmDOI}%
-            \else % Conference
-              \ifx\@acmISBN\@empty\else ACM~ISBN~\@acmISBN
-              \ifx\@acmPrice\@empty.\else\dots\$\@acmPrice\fi\\\fi
-              \ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi%
-            \fi
-          \fi
-        \fi
-      \fi}
-    \fi
+  %\if@ACM@nonacm\else\footnotetextcopyrightpermission{%
+  %  \if@ACM@authordraft
+  %      \raisebox{-2ex}[\z@][\z@]{\makebox[0pt][l]{\large\bfseries
+  %          Unpublished working draft. Not for distribution.}}%
+  %     \color[gray]{0.9}%
+  %  \fi
+  %  \parindent\z@\parskip0.1\baselineskip
+  %  \if@ACM@authorversion\else
+  %    %\if@printpermission\@copyrightpermission\par\fi
+  %  \fi
+    %\if@ACM@manuscript\else
+     %  \if@ACM@journal\else % Print the conference information
+      %   {\itshape \acmConference@shortname, \acmConference@date, \acmConference@venue}\par
+       %\fi
+    %\fi
+    %\if@printcopyright
+    %  \copyright\ \@copyrightyear\ \@copyrightowner\\
+    %\else
+    %  \@copyrightyear.\
+    %\fi
+  %  \if@ACM@manuscript
+  %    Manuscript submitted to ACM\\
+  %  \else
+  %    \if@ACM@authorversion
+  %        This is the author's version of the work. It is posted here for
+  %        your personal use. Not for redistribution. The definitive Version
+  %        of Record was published in
+  %        \if@ACM@journal
+  %          \emph{\@journalName}%
+  %        \else
+  %          \emph{\@acmBooktitle}%
+  %       \fi
+          %\ifx\@acmDOI\@empty
+          %.
+          %\else
+          %  , \@formatdoi{\@acmDOI}.
+          %\fi\\
+  %      \else
+  %        \if@ACM@nonacm\else
+  %          \if@ACM@journal
+  %            \@permissionCodeOne/\@acmYear/\@acmMonth-ART\@acmArticle
+  %            \ifx\@acmPrice\@empty\else\ \$\@acmPrice\fi\\
+  %            %\@formatdoi{\@acmDOI}%
+            %\else % Conference
+            %  \ifx\@acmISBN\@empty\else ACM~ISBN~\@acmISBN
+            %  \ifx\@acmPrice\@empty.\else\dots\$\@acmPrice\fi\\\fi
+            %  \ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi%
+  %          \fi
+  %        \fi
+  %      \fi
+  %    \fi}
+  %  \fi
   \endgroup
   \setcounter{footnote}{0}%
   \@mkabstract
@@ -2226,29 +2226,29 @@ Computing Machinery]
       \string\titlenote{} or \string\authornote{} instead!}}%
   \def\@article@string{\ifx\@acmArticle\@empty{\ }\else,
     Article~\@acmArticle\ \fi}%
-  \par\medskip\small\noindent{\bfseries ACM Reference Format:}\par\nobreak
-  \noindent\bgroup
-    \def\\{\unskip{}, \ignorespaces}\authors\egroup. \@acmYear. \@title
-  \ifx\@subtitle\@empty. \else: \@subtitle. \fi
-  \if@ACM@nonacm\else
+  %\par\medskip\small\noindent{\bfseries ACM Reference Format:}\par\nobreak
+  %\noindent\bgroup
+  %  \def\\{\unskip{}, \ignorespaces}\authors\egroup. \@acmYear. \@title
+  %\ifx\@subtitle\@empty. \else: \@subtitle. \fi
+  %\if@ACM@nonacm\else
     % The 'nonacm' option disables 'printacmref' by default,
     % and the present \@mkbibcitation definition is never used
     % in this case. The conditional remains useful if the user
     % explicitly sets \settopmatter{printacmref=true}.
-    \if@ACM@journal
-       \textit{\@journalNameShort}
-       \@acmVolume, \@acmNumber \@article@string (\@acmPubDate),
-       \ref{TotPages}~\@pages@word.
-    \else
-       In \textit{\@acmBooktitle}%
-       \ifx\@acmEditors\@empty\textit{.}\else
-         \andify\@acmEditors\textit{, }\@acmEditors~\@editorsAbbrev.%
-       \fi\
-       ACM, New York, NY, USA%
-         \@article@string\unskip, \ref{TotPages}~\@pages@word.
-    \fi
-  \fi
-  \ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi
+  %  \if@ACM@journal
+  %     \textit{\@journalNameShort}
+  %     \@acmVolume, \@acmNumber \@article@string (\@acmPubDate),
+  %     \ref{TotPages}~\@pages@word.
+  %  \else
+  %     In \textit{\@acmBooktitle}%
+  %     \ifx\@acmEditors\@empty\textit{.}\else
+  %       \andify\@acmEditors\textit{, }\@acmEditors~\@editorsAbbrev.%
+  %     \fi\
+  %     ACM, New York, NY, USA%
+  %       \@article@string\unskip, \ref{TotPages}~\@pages@word.
+  %  \fi
+  %\fi
+  %\ifx\@acmDOI\@empty\else\@formatdoi{\@acmDOI}\fi
 \par\egroup}
 \def\@printendtopmatter{\par\bigskip}
 \def\@setthanks{\long\def\thanks##1{\par##1\@addpunct.}\thankses}
@@ -2360,12 +2360,12 @@ Computing Machinery]
     \fancyfoot[C]{\if@ACM@printfolios\footnotesize\thepage\fi}%
     \fancyhead[LO]{\ACM@linecountL\@headfootfont\shorttitle}%
     \fancyhead[RE]{\@headfootfont\@shortauthors\ACM@linecountR}%
-    \if@ACM@nonacm\else%
-      \fancyhead[LE]{\ACM@linecountL\@headfootfont\acmConference@shortname,
-        \acmConference@date, \acmConference@venue}%
-      \fancyhead[RO]{\@headfootfont\acmConference@shortname,
-        \acmConference@date, \acmConference@venue\ACM@linecountR}%
-    \fi%
+    %\if@ACM@nonacm\else%
+    %  \fancyhead[LE]{\ACM@linecountL\@headfootfont\acmConference@shortname,
+    %    \acmConference@date, \acmConference@venue}%
+    %  \fancyhead[RO]{\@headfootfont\acmConference@shortname,
+    %    \acmConference@date, \acmConference@venue\ACM@linecountR}%
+    %\fi%
   \fi
   \if@ACM@sigchiamode
      \fancyheadoffset[L]{\dimexpr(\marginparsep+\marginparwidth)}%

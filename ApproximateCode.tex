@@ -17,22 +17,14 @@
 
 \title{Approximate Code: A Cost-Effective Erasure Coding Framework for Tiered Video Storage in Cloud Systems}
 
-\author{Huayi Jin}
-\email{keplar_gd@sjtu.edu.cn}
+\author{Huayi Jin, Chentao Wu, Xin Xie, Jie Li, Minyi Guo, Hao Lin, Jianfeng Zhang}
+%\email{keplar_gd@sjtu.edu.cn}
 \affiliation{%
   \institution{Shanghai Jiao Tong University}
 }
 
-\author{Chentao Wu}
-\author{Xin Xie}
-\author{Jie Li}
-\author{Minyi Guo}
-\affiliation{
-  \institution{Shanghai Jiao Tong University}
-}
 
-\author{Hao Lin}
-\author{Jianfeng Zhang}
+\author{Hao Lin, Jianfeng Zhang}
 \authornotemark[1]
 \affiliation{%
   \institution{The Alibaba Group}
@@ -82,22 +74,24 @@ The evaluation is presented in Section \ref{evaluation} and the conclusion of ou
 In this section, we introduce the background of video storage, existing solutions to reduce storage cost and the motivation of this paper.
 To facilitate the discussion, we summarize the symbols used in this paper in Table \ref{parameter}.
 
-\begin{table}[]
+\begin{table}[]\footnotesize
 \caption{The symbols used in this paper.}\label{parameter}
-\centering\small
-\begin{tabular}{|p{1cm}<{\centering}|p{6.5cm}|}
+\centering
+\begin{tabular}{|p{0.7cm}<{\centering}|p{6.5cm}|}
 \hline
 Symbols & \multicolumn{1}{c|}{Description} \\ \hline \hline
 $k$ & the number of data nodes in a local stripe \\ \hline
 $r$ & the number of local parity nodes in a local stripe \\ \hline
-$n$ & the number of all data and parity nodes in a local stripe ($n=k+r$) \\ \hline
+$n$ & the number of all data and parity nodes in a local stripe. ($n=k+r$) \\ \hline
 $h$ & the number of local stripes to construct a global stripe \\ \hline
 $g$ & the number of global parity nodes \\ \hline
 $N$ & total number of all nodes ($N=(k+r)h+g$) \\ \hline
-$E_{i,j}$ & element at the $i$-th row and $j$-th column \\ \hline
-$D_i$ & data nodes \\ \hline
+$E_{i,j}$ & the element at the $i$-th row and $j$-th column \\ \hline
+$D_i$ & a data node \\ \hline
 $P_{I}$ & the mathematical expectation of important data being recoverable under faults that exceed fault tolerance \\ \hline
 $P_{U}$ & the mathematical expectation of unimportant data being recoverable under faults that exceed fault tolerance \\ \hline
+$\oplus$ & the XOR operation symbol \\ \hline
+$\binom{n}{k}$ & The number of $k$-combinations from $n$ elements\\ \hline
 LP & local parity nodes \\ \hline
 GP & global parity nodes \\ \hline
 ID & important data in a video file \\ \hline
@@ -145,18 +139,23 @@ In the past two decades, several famous erasure codes are proposed for double Di
 In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes \cite{RS}, Cauchy-RS codes \cite{CRS}, STAR code \cite{STAR}, Triple-Star code \cite{TripleStar}, Triple-Parity code \cite{TPtech}, HDD1 code \cite{HDD}, RSL-code \cite{RSL}, RL-code \cite{RL}, and so on. Typical non-MDS codes contain WEAVER codes \cite{WEAVER}, HoVercodes \cite{HoVer}, T-code \cite{TCode}, HDD2 code \cite{HDD}, Pyramid codes \cite{Pyramid}, Local Reconstruction Codes \cite{LRC}, Locally Repairable Codes \cite{XORing}, etc.
 In the following we mainly introduce the classic erasure codes used in this paper.
 
-Reed Solomon Code \cite{RS} (RS code) is one kind of classic MDS codes, but its scheme requires additions and multiplications over finite fields and results in high complexity in decoding and updating. Several attempts have been made to address this issue.
+Reed Solomon Code \cite{RS} (RS code) is a classic MDS code. The encoding and decoding operations of RS code are based on Galois Field (GF), leading to high scalability as well as high computational complexity. All the parities of RS code are horizontal as shown in Figure \ref{fig-RS-1}.
 
 \textcolor{red}{Need to update}
 Local Construction Code (LRC) \cite{LRC} divides the data nodes into multiple local groups, each with a local parity node, and the global parity is calculated by all data nodes. Therefore, when a single node is corrupted, data can be recovered by local parity without requiring access to all nodes.
-LRC reduce the bandwidth and I/Os required for repair reads at the expense of higher storage overhead, as shown in Figure \ref{LRC}.
+LRC reduce the bandwidth and I/Os required for repair reads at the expense of higher storage overhead, as shown in Figure \ref{fig-LRC-1}.
 
 \begin{figure}
     \centering
-    \includegraphics[height=2.5cm]{photo/LRC.pdf}
-    \caption{LRC}
+    \subfigure[\textbf{RS Code:} Horizontal parity coding (e.g., $E_{0,5} = \sum_{i=0}^3 A_{0,i}E_{0,i}$)]{
+        \includegraphics[width=0.26\linewidth]{photo/RS-1.pdf}\label{fig-RS-1}
+    }
+    \hspace{3px}
+    \subfigure[\textbf{LRC Code:} Horizontal parity coding (e.g., the local parity $E_{0,5} = \sum_{i=2}^3 A_{0,i}E_{0,i}$ and the global parity $E_{0,7} = \sum_{i=0}^3 A_{0,i}E_{0,i}$)]{
+        \includegraphics[width=0.67\linewidth]{photo/LRC-1.pdf}\label{fig-LRC-1}
+    }
+    \caption{Encoding of RS code and LRC}
 \end{figure}
-
 
 STAR code \cite{STAR} is an extension of the double-erasure-correcting EVENODD \cite{EVENODD} code, and a modification of the generalized triple-erasure-correcting EVENODD code. It employs a novice diagonal redundancy as shown in the left of Figure \ref{fig-star-tip}.
 
@@ -197,7 +196,7 @@ Compared with STAR code, the encoding and data arrangement of TIP code eliminate
 STAR requires the number of data nodes to be $p$, and TIP requires that to be $p-2$, where $p$ is a prime number.
 
 
-\subsection{Approximate Storage}
+\subsection{Approximate Storage \textcolor[rgb]{1.00,0.00,0.00}{Compression}}
 %Storage techniques nowadays generally regard all information of the same importance, which causes significant costs in energy, disk drives and computing resources. But not all data need high-reliability storage for its backup. That is why the concept of approximate storage is introduced.
 Approximate Storage is an innovative approach of trading off the limited resource budget with the costly reliability requirements, which recently receives more attentions since data centers are faced with storage pressure from the ever-increasing data.
 
@@ -208,35 +207,37 @@ Approximate storage loosens the requirement of storage reliability by allowing q
 
 %However, it is too naive to store data in approximate storage units indiscriminately. Related research \cite{guo2016high} shows that this can lead to unacceptable data pollution. To ensure data quality in this case, higher error correction costs are required resulting in an increase in overall storage costs. Therefore, it is very important to distinguish the importance of video data.
 
-\begin{table}[ht]
+\begin{table}[ht]\footnotesize
 \centering
 \caption{
-\textcolor{red}{Need to update}
 Comparison of storage overhead, reliability and performance among various storage methods for video files}\label{tab-AS-EC-AP}
-\small
-\begin{tabular}{|c|c|c|c|c|}
+\begin{tabular}{|c|c|p{1.2cm}<{\centering}|p{1.2cm}<{\centering}|p{1.2cm}<{\centering}|}
 \hline
-\multicolumn{2}{|c|}{Schemes} & \begin{tabular}[c]{@{}c@{}}Storage\\ Overhead\end{tabular} & Reliability & Performance \\ \hline
-\multirow{2}{*}{EC} & RS & high & high & medium \\ \cline{2-5}
- & RAID-6 & medium & medium & high \\ \hline
-\multicolumn{2}{|c|}{Approximate Storage} & low & low & high \\ \hline
-\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Approximate \\ Code\end{tabular}} & ID & \multirow{2}{*}{low} & high & high \\ \cline{2-2} \cline{4-5}
- & UD &  & medium & high \\ \hline
+\multirow{2}{*}{EC} & RS & high & high & high \\ \cline{2-5}
+ & RAID-6 & medium & medium & medium \\ \hline
+\multicolumn{2}{|c|}{Approximate Storage} & low & low & low \\ \hline
+\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}Approximate\\ Code\end{tabular}} & ID & low & high & low \\ \cline{2-5}
+ & UD & low & medium & low \\ \hline
+\multicolumn{2}{|c|}{Data Compression} & low & / & high \\ \hline
 \end{tabular}
 \end{table}
+
+
+
+
 
 \subsection{Our Motivation}
 
 %Based on Table \ref{tab-AS-EC-AP}, either the existing erasure codes or the approximate storage methods cannot meet the requirements of video applications in the cloud storage system due to the following reasons.
 %First, the overhead of existing 3DFTs erasure codes is too high.
-Second, the 2DFTs erasure codes sacrifice part of reliability, and the reliability of approximate storage schemes are much lower since they cannot tolerate disk-level failures.
-Finally, existing erasure codes provide the same fault tolerance for all data without distinction, resulting in the same reliability for error-sensitive data and robust data.
+%Second, the 2DFTs erasure codes sacrifice part of reliability, and the reliability of approximate storage schemes are much lower since they cannot tolerate disk-level failures.
+%Finally, existing erasure codes provide the same fault tolerance for all data without distinction, resulting in the same reliability for error-sensitive data and robust data.
 
 From the summary of Table \ref{tab-AS-EC-AP}, we can find that existing solutions have high storage cost for video storage. Although approximate storage achieves low cost, the reliability cannot be satisfied in cloud environment. A feasible solution is combining the existing solutions together with tiered storage \cite{krish2014hats} \cite{wang2014balancing} \cite{zhang2010automated} \cite{udipi2012lot}, which motivates us to propose Approximate Code.
 
 \begin{figure*}[ht!]
 \centering
-\includegraphics[width=\linewidth]{photo/Framework-v3.pdf}
+\includegraphics[width=0.9\linewidth]{photo/Framework-v3.pdf}
 \caption{The framework of Approximate Code}
 \label{fig-framework}
 \end{figure*}
@@ -283,6 +284,16 @@ For RS($k,p$), it can be seen that it provides $p$ independent horizontal parity
 For the situation shown in Figure \ref{fig-framework}, we consider the input erasure code as RS($4,3$). It is divided into two local parities and one global parities with the Uneven structure and it generate Approximate RS Code ($4,2,1,3$,Uneven).
 As a result, the unimportant data constitutes RS($4,2$), and the important data constitutes RS($4,3$).
 
+\begin{figure}
+    \centering
+    \subfigure[XXX]{
+        \includegraphics[width=0.26\linewidth]{photo/RS-2.pdf}\label{fig-RS-2}
+    }
+    \subfigure[XXX]{
+        \includegraphics[width=0.68\linewidth]{photo/LRC-2.pdf}\label{fig-LRC-2}
+    }
+    \caption{XXXX}
+\end{figure}
 
 \subsection{Approximate XOR-based Codes}
 Since we mainly provide 3DFTs for important data, we prefer to construct Approximate Code with several XOR-based codes to provide faster encoding and reconstruction speed than RS. This section introduce two tipical construction of Approximate XOR-based Code, Approximate STAR Code and Approximate TIP Code.
@@ -294,13 +305,9 @@ Since we mainly provide 3DFTs for important data, we prefer to construct Approxi
     \includegraphics[width = 0.5\linewidth]{photo/APPR-STAR-STR.pdf}
 }
 
-\subfigure[Generation of local parities]{
-    \label{fig-ap-tip-lP}
-    \includegraphics[width = 0.59\linewidth]{photo/APPR-STAR-LO.pdf}
-}
-\subfigure[Generation of global parities]{
-    \label{fig-ap-tip-GP}
-    \includegraphics[width = 0.35\linewidth]{photo/APPR-STAR-GL.pdf}
+\subfigure[Generation process]{
+    \label{fig-ap-tip-GEN}
+    \includegraphics[width = \linewidth]{photo/APPR-STAR-GEN.pdf}
 }
 \caption{The construction and the encoding process of APPR.STAR ($5,2,1,4$,Uneven), which can be divided into STAR (encode important data) and EVENODD (encode unimportant data).}
 \label{fig-ap-5214}
@@ -331,7 +338,7 @@ Briefly, APPR.STAR($5,2,1,4$,Uneven) can be considered to be important data enco
 
 \subfigure[Generation of global parities]{
     \label{fig-ap-tip-GP}
-    \includegraphics[width = 0.75\linewidth]{photo/APPR-TIP-GL.pdf}
+    \includegraphics[width = 0.8\linewidth]{photo/APPR-TIP-GL-v2.pdf}
 }
 \caption{The construction and the encoding process of APPR.TIP ($5,1,2,6$,Even). The node 5 and 6 in TIP code is defined as the global parity nodes in this case.}
 \label{fig-ap-TIP}
@@ -537,72 +544,71 @@ We combined the encoding time of five codes in Figure \ref{fig-encoding-combine}
 \subfigure[APPR.TIP/STAR and LRC]{
     \label{fig-encodingLRC}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Encoding-LRC.eps}
-}
+}\vspace{-0.5cm}
 \caption{Encoding Time Comparison between AP method and other method}\label{fig-encoding}
 \end{figure*}
 
 
 \begin{figure*}[ht]
-\subfigure[APPR.STAR and STAR]{
+\subfigure{
     \label{fig-decoding-1-STAR}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-1-Star.eps}
 }
-\subfigure[APPR.TIP and TIP]{
+\subfigure{
     \label{fig-decoding-1-TIP}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-1-TIP.eps}
 }
-\subfigure[APPR.TIP/STAR and RS]{
+\subfigure{
     \label{fig-decoding-1-RS}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-1-RS.eps}
 }
-\subfigure[APPR.TIP/STAR and LRC]{
+\subfigure{
     \label{fig-decoding-1-LRC}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-1-LRC.eps}
-}
+}\vspace{-0.5cm}
 \caption{Decoding Time Comparison in One Disk between AP method and other method}\label{fig-decoding-1}
 \end{figure*}
 
 
 \begin{figure*}[ht]
-\subfigure[AP and RS]{
+\subfigure{
     \label{fig-decoding-2-STAR}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-2-Star.eps}
 }
-\subfigure[AP and STAR]{
+\subfigure{
     \label{fig-decoding-2-TIP}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-2-TIP.eps}
 }
-\subfigure[AP and TIP]{
+\subfigure{
     \label{fig-decoding-2-RS}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-2-RS.eps}
 }
-\subfigure[APPR.TIP/STAR and LRC]{
+\subfigure{
     \label{fig-decoding-2-LRC}
     \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-2-LRC.eps}
-}
+}\vspace{-0.5cm}
 \caption{Decoding Time Comparison in Two Disk between AP method and other method}\label{fig-decoding-2}
 \end{figure*}
 
 \begin{figure*}[ht]
-    \subfigure[AP and RS]{
-        \label{fig-decoding-3-STAR}
-        \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-Star.eps}
-    }
-    \subfigure[AP and STAR]{
-        \label{fig-decoding-3-TIP}
-        \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-TIP.eps}
-    }
-    \subfigure[AP and TIP]{
-        \label{fig-decoding-3-RS}
-        \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-RS.eps}
-    }
-    \subfigure[APPR.TIP/STAR and LRC]{
-        \label{fig-decoding-3-LRC}
-        \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-LRC.eps}
-    }
-    \caption{Decoding Time Comparison in Two Disk between AP method and other method}\label{fig-decoding-3}
-    \end{figure*}
-
+\subfigure{
+    \label{fig-decoding-3-STAR}
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-Star.eps}
+}
+\subfigure{
+    \label{fig-decoding-3-TIP}
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-TIP.eps}
+}
+\subfigure{
+    \label{fig-decoding-3-RS}
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-RS.eps}
+}
+\subfigure{
+    \label{fig-decoding-3-LRC}
+    \includegraphics[width = 0.23\linewidth]{photo/experiment/Decoding-3-LRC.eps}
+}\vspace{-0.5cm}
+\caption{Decoding Time Comparison in Two Disk between AP method and other method}\label{fig-decoding-3}
+\end{figure*}
 
 \subsubsection{Decoding Time under One Failure Node Condition Analysis}
 
@@ -660,11 +666,34 @@ In this part, we compared the decoding time of Approximate Code with TIP code, S
     According to Figure \ref{fig-decoding-3-LRC}, we could see that Approximate Code largely reduces the decoding time when three nodes fail, compared with LRC codes. The rate of optimization is up to $98.3\%$  (between APPR.TIP/STAR ($k,1,2,6$) and LRC ($k, 6, 2$) when $k = 5$).
 \end{itemize}
 
+\iffalse
+\begin{figure}[ht]
+\centering
+\subfigure[]{
+\includegraphics[width=0.5\linewidth]{photo/experiment/Recovery-2.eps}\label{fig-rec-2}
+}\hspace{-0.4cm}
+\subfigure[]{
+\includegraphics[width=0.5\linewidth]{photo/experiment/Recovery-3.eps}\label{fig-rec-3}
+}
+\caption{Recovery time Result using Frame Interpolation}
+\label{fig-recoverytime}
+\end{figure}
+\fi
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{photo/experiment/Recovery-2-3.pdf}\label{fig-rec-3}
+\caption{Recovery time Result using Frame Interpolation}
+\label{fig-recoverytime}
+\end{figure}
+
 The combined decoding time of five codes under three failure node condition are shown in Figure \ref{fig-decoding-3-combine} ($k$=5). The results show that LRC has the worst three failure nodes decoding performance. The main reasons are that: On three failure nodes condition, LRC codes decode data through the global parities which has a longer parity chain. For example $LRC (44,4,2)$ use 44 nodes to recover the three lost nodes. the computational cost of GF operations is also larger than XOR operations. On the other hand, All kinds of Approximate Code perform best among all kinds of codes because they only recover important data at this time.
 
 
 \subsection{Frame Recovery}
 Here we present the frame recovery result by using frame interpolation \cite{meyer2015phase, niklaus2018context,van2017frame}. As shown in Figure\ref{fig-frameRecovery}, The top 3 figures are the original frames. When frame 2 lost, the interpolation techniques can output \ref{fig-recoverof2} by the input of \ref{fig-interop1} and \ref{fig-interop3}. The recovered frame has a lower resolution and may differ from the original image, but since the unconstrained frame contains most of the context information, the video is still available, which validates the fact that the video can tolerate a certain amount of data loss.
+
+
 
 \begin{figure}[ht]
 \centering
@@ -685,13 +714,8 @@ Here we present the frame recovery result by using frame interpolation \cite{mey
 \label{fig-frameRecovery}
 \end{figure}
 
-
 \section{Conclusion}\label{Conclusion}
 In this paper, we present the Approximate Code, which is the framework for video tiered storage in cloud systems. The Approximate Code can segment the input erasure codes and provide different fault tolerance for data of different importance. For important data, the Approximate Code provides 3DFTs, and for non-critical data, the Approximate Code provides single or double parity, thus saving storage costs and speeding up recovery, while having good update write performance. We conducted several experiments in the Hadoop system and found that compared to traditional 3DFTs using various erasure codes such as RS, STAR and TIP-Code, Approximate Code reduces the number of parities by up to 55\%, saves the storage cost by up to 20.8\%, increase the recovery speed by up to 1.25X when single disk fails, and can reconstruct the whole video data via fuzzification when triple disks fail.
-
-\begin{acks}
-
-\end{acks}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{ApproximateCode}
