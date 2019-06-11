@@ -152,7 +152,9 @@ In the circumstance of video approximate storage, it's common to lose some frame
 \subsection{Existing Erasure Codes}\label{existEC}
 Reliability is a critical issue since disk failures are typical in storage systems. To improve the reliability of storage systems, several RAID forms (e.g., RAID-5, RAID-6, 3DFTs) and erasure codes are proposed by researchers.  Traditional erasure codes can be categorized into two classes, Maximum Distance Separable (MDS) codes and non-MDS codes. MDS codes aim to offer data protection with optimal storage efficiency. On the other hand, non-MDS codes improve the performance or reliability by consuming extra storage space.
 
-In the past two decades, several famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD code \cite{EVENODD}, RDP code \cite{RDP}, Blaum-Roth code\cite{BlaumRoth}, X-code \cite{XCode}, Liberation code \cite{Liberation}, Liber8tion code \cite{Liber8tion}, Cyclic \cite {Cyclic} code, B-Code \cite{BCode}, Code-M \cite{Code-M}, H-code \cite{hcode}, P-code \cite{PCode} and HVcode \cite{HVCode}, etc. 
+In the past two decades, several famous erasure codes are proposed for double Disk Failure Tolerant arrays (2DFTs or RAID-6), such as EVENODD code \cite{EVENODD}, RDP code \cite{RDP}, Blaum-Roth code\cite{BlaumRoth}, X-code \cite{XCode}, Liberation code \cite{Liberation}, Liber8tion code \cite{Liber8tion}, Cyclic \cite {Cyclic} code,
+% B-Code \cite{BCode}, Code-M \cite{Code-M},
+H-code \cite{hcode}, P-code \cite{PCode} and HVcode \cite{HVCode}, etc. 
 In Triple Disks Failure Tolerant Arrays (3DFTs), typical MDS codes include Reed-Solomon codes \cite{RS}, Cauchy-RS codes \cite{CRS}, STAR code \cite{STAR}, Triple-Star code \cite{TripleStar}, Triple-Parity code \cite{TPtech}, HDD1 code \cite{HDD}, RSL-code \cite{RSL}, and so on. Typical non-MDS codes contain WEAVER codes \cite{WEAVER}, HoVercodes \cite{HoVer}, T-code \cite{TCode}, HDD2 code \cite{HDD}, Pyramid codes \cite{Pyramid}, Local Reconstruction Codes \cite{LRC}, Locally Repairable Codes \cite{XORing}, AZ-code \cite{AZ-code}, etc. Besides these codes, several methods are proposed to accelerate the encoding/decoding \cite{PCM}\cite{APCM}.
 In the following we mainly introduce the classic erasure codes used in this paper.
 
@@ -444,10 +446,10 @@ In this section, we conduct a series of experiments to demonstrate the efficienc
 
 
 \subsection{Evaluation Methodology}
-The experiments consist of two parts. In the first part we evaluate the performance/reliability of the Approximate Code, which includes encoding/decoding performance, single write performance, etc. In the second part we verify the capability of interpolation algorithm\cite{meyer2015phase, niklaus2018context,van2017frame} to recover the lost video frames. The dataset we used is a collection of 60fps videos from \textbf{YouTube-8m} \cite{youtube8m}. We define a $1\%$ data loss on the unimportant video frames.
-The average quality of the recovered pictures is commonly above 35dB in terms of Peak Signal to Noise Ratio (PSNR).  The recovered frame has a lower resolution and differs from the original image, but the unconstrained frame contains most of the context information. Therefore, the video is still available and useful for several recovery scenarios. It validates the fact that the video can tolerate a certain amount of data loss (e.g., more than $r+g+1$ nodes).
+In the experiments, we mainly evaluate the performance/reliability of the Approximate Code, which includes encoding/decoding performance, single write performance, etc.
 
-
+We also verify the capability of interpolation algorithm\cite{meyer2015phase, niklaus2018context,van2017frame} to recover the lost video frames. The dataset we used is a collection of 60fps videos from \textbf{YouTube-8m} \cite{youtube8m}. We define a $1\%$ data loss on the unimportant video frames.
+The average quality of the recovered pictures is commonly above 35dB in terms of Peak Signal to Noise Ratio (PSNR). The recovered frame has a lower resolution and differs from the original image, but the unconstrained frame contains most of the context information. Therefore, the video is still available and useful for several recovery scenarios. It validates the fact that the video can tolerate a certain amount of data loss (e.g., more than $r+g+1$ nodes). Due to space limitation, we do not include these results in the paper. 
 
 \subsubsection{Erasure Codes}
 We select several erasure codes and their corresponding Approximate Codes in our evaluation as below ($k = 5,7,9,11,13,15,17$), which can tolerant concurrent triple node failures and be used in typical cloud storage systems.
